@@ -40,12 +40,23 @@ struct rparams {
   int nlambda;
 };
 
+void print_state (size_t iter, gsl_multiroot_fsolver * s)
+{
+  printf ("iter = %3u x = % .3f % .3f "
+  "f(x) = % .3e % .3e\n",
+          iter,
+          gsl_vector_get (s->x, 0), 
+          gsl_vector_get (s->x, 1),
+          gsl_vector_get (s->f, 0), 
+          gsl_vector_get (s->f, 1));
+}
+
 int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
   double* lambdas = ( ( struct rparams* ) params )->lambdas;
   double** actions = ( ( struct rparams* ) params )->actions;
   int* lengths = ( ( struct rparams* ) params )->lengths;
   int nlambda = ( ( struct rparams * ) params )->nlambda;
-    
+  
   double fas[nlambda];
   double eqns[nlambda];
   for( int a = 0; a < nlambda; ++a ) {
@@ -83,7 +94,7 @@ int main( void ) {
   double lambdas[nlambda];
   lambdas[0] = 0.46;
   lambdas[1] = 0.47;
-//   int V = 24 * 23 * 23;
+  //   int V = 24 * 23 * 23;
   
   char* sfNames[nlambda];
   sfNames[0] = "/data2/Results/GN/red/24x23x23/results_1/Configs/ScalarField_ScalarOnConfig_.46.dat";
@@ -101,8 +112,8 @@ int main( void ) {
     
     int* count1 = NULL;         // TODO: count is not needed anywhere, can we skip reading this?
     int* count2 = NULL;
-//     double* sfOnConf = sfVals[numLambda];
-//     double* actionOnConf = actionVals[numLambda];
+    //     double* sfOnConf = sfVals[numLambda];
+    //     double* actionOnConf = actionVals[numLambda];
     
     length[numLambda] = readOnConfigFile( sfNames[numLambda], &count1, &sfVals[numLambda] );
     int linesCountAction = readOnConfigFile( actionNames[numLambda], &count2, &actionVals[numLambda] );
@@ -131,9 +142,10 @@ int main( void ) {
   gsl_vector *fa = gsl_vector_alloc( nlambda );
   gsl_vector *eqns = gsl_vector_alloc( nlambda );
   for( int numLambda = 0; numLambda < nlambda; ++numLambda ) {
-    gsl_vector_set( fa, numLambda, 50*numLambda );
+    gsl_vector_set( fa, numLambda, 10*numLambda );
   }
   
+  // testing equation evaluation on initial values
   equation( fa, &p, eqns );
   
   for( int numLambda = 0; numLambda < nlambda; ++numLambda ){
@@ -141,7 +153,40 @@ int main( void ) {
     free( sfVals[numLambda] );
     free( actionVals[numLambda] );
   }
-
+  
+  const gsl_multiroot_fsolver_type *T;
+  gsl_multiroot_fsolver *s;
+  
+  const size_t n = 2;
+  size_t iter = 0;
+  int status;
+  
+  gsl_multiroot_function f = {&equation, n, &p};
+  T = gsl_multiroot_fsolver_hybrids;
+  s = gsl_multiroot_fsolver_alloc(T, 2);
+  gsl_multiroot_fsolver_set( s, &f, fa );
+  
+  print_state(iter, s);
+  
+  do
+  {
+    iter++;
+    status = gsl_multiroot_fsolver_iterate (s);
+    
+    print_state (iter, s);
+    
+    if (status)   /* check if solver is stuck */
+      break;
+    
+    status = 
+    gsl_multiroot_test_residual (s->f, 1e-7);
+  }
+  while (status == GSL_CONTINUE && iter < 1000);
+  
+  printf ("status = %s\n", gsl_strerror (status));
+  
+  gsl_multiroot_fsolver_free (s);
+  
   gsl_vector_free( fa );
   gsl_vector_free( eqns );
   return EXIT_SUCCESS;
