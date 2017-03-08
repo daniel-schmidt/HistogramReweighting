@@ -38,8 +38,6 @@ struct rparams {
   double** actions;
   int* lengths;
   int nlambda;
-  double* denom;
-  int V;
 };
 
 int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
@@ -47,8 +45,6 @@ int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
   double** actions = ( ( struct rparams* ) params )->actions;
   int* lengths = ( ( struct rparams* ) params )->lengths;
   int nlambda = ( ( struct rparams * ) params )->nlambda;
-  double* denom = ( ( struct rparams* ) params )->denom;
-  int V = ( ( struct rparams* ) params )->V;
     
   double fas[nlambda];
   double eqns[nlambda];
@@ -57,32 +53,22 @@ int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
     eqns[a] = -fas[a];
   }
   
-  int offset = 0;
-  for( int b = 0; b < nlambda; ++b ){
-    int currLen = lengths[b];
-    for( int i = 0; i < currLen; ++i ){
-      for( int a = 0; a < nlambda; ++a ){ 
-        denom[ offset + i ] += lengths[a] * exp(-lambdas[a] * actions[b][i] + fas[a]);
+  for( int c = 0; c < nlambda; ++c ) {
+    double sum = 0.;
+    for( int b = 0; b < nlambda; ++b ) {
+      for( int i = 0; i < lengths[b]; ++i ) {
+        double denom = 0.;
+        for( int a = 0; a < nlambda; ++a ) {
+          denom += lengths[a] * exp(actions[b][i] * (lambdas[c] - lambdas[a]) + fas[a]);
+        }
+        sum += 1./denom;
       }
     }
-    offset += currLen;
-  }
-  
-  for( int a = 0; a < nlambda; ++a ){
-    double fullSum = 0;
-    offset = 0;
-    for( int b = 0; b < nlambda; ++b ){
-      int currLen = lengths[b];
-      for( int i = 0; i < currLen; ++i ){
-        fullSum += exp( -lambdas[a] * actions[b][i] ) / denom[ offset + i ];
-      }
-      offset += currLen;
-    }
-    eqns[a] -= log( fullSum );
+    eqns[c] = fas[c] + log(sum);
   }
   
   for( int a = 0; a < nlambda; ++a ) {
-    printf("eqn %d: %f", a, eqns[a]);
+    printf("eqn %d: %f\n", a, eqns[a]);
     gsl_vector_set( eqn, a, eqns[a] );
   }
   
@@ -97,7 +83,7 @@ int main( void ) {
   double lambdas[nlambda];
   lambdas[0] = 0.46;
   lambdas[1] = 0.47;
-  int V = 24 * 23 * 23;
+//   int V = 24 * 23 * 23;
   
   char* sfNames[nlambda];
   sfNames[0] = "/data2/Results/GN/red/24x23x23/results_1/Configs/ScalarField_ScalarOnConfig_.46.dat";
@@ -133,7 +119,6 @@ int main( void ) {
     free( count2 );
   }
   
-  double* denom = malloc( numData * sizeof (double) );
   printf("We have %d data points.\n", numData);
   
   struct rparams p = {
@@ -141,8 +126,6 @@ int main( void ) {
     actionVals,
     length,
     nlambda,
-    denom,
-    V
   };
   
   gsl_vector *fa = gsl_vector_alloc( nlambda );
@@ -158,7 +141,7 @@ int main( void ) {
     free( sfVals[numLambda] );
     free( actionVals[numLambda] );
   }
-  free( denom);
+
   gsl_vector_free( fa );
   gsl_vector_free( eqns );
   return EXIT_SUCCESS;
