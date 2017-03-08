@@ -42,22 +42,34 @@ struct rparams {
 
 void print_state (size_t iter, gsl_multiroot_fsolver * s)
 {
-  printf ("iter = %3zu x = % .3f "
-  "f(x) = % .3e \n",
+  printf ("iter = %3zu x = % .3f, % .3f "
+  "f(x) = % .3e, % .3e \n",
           iter,
           gsl_vector_get (s->x, 0), 
-//           gsl_vector_get (s->x, 1),
-          gsl_vector_get (s->f, 0)
-//           gsl_vector_get (s->f, 1)
+          gsl_vector_get (s->x, 1),
+          gsl_vector_get (s->f, 0),
+          gsl_vector_get (s->f, 1)
   );
 }
 
-int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
+double P( double lambda, int b, int i, void * params, double* fas ) {  
   double* lambdas = ( ( struct rparams* ) params )->lambdas;
   double** actions = ( ( struct rparams* ) params )->actions;
   int* lengths = ( ( struct rparams* ) params )->lengths;
   int nlambda = ( ( struct rparams * ) params )->nlambda;
   
+  
+  double denom = 0.;
+  for( int a = 0; a < nlambda; ++a ) {
+    denom += lengths[a] * exp(actions[b][i] * (lambda - lambdas[a]) + fas[a]);
+  }
+  return 1./denom;
+}
+
+int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
+  double* lambdas = ( ( struct rparams* ) params )->lambdas;
+  int nlambda = ( ( struct rparams * ) params )->nlambda;
+  int* lengths = ( ( struct rparams* ) params )->lengths;
   double fas[nlambda];
   double eqns[nlambda-1];
   fas[0] = 0.;
@@ -68,12 +80,8 @@ int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
   for( int c = 1; c < nlambda; ++c ) {
     double sum = 0.;
     for( int b = 0; b < nlambda; ++b ) {
-      for( int i = 0; i < lengths[b]; ++i ) {
-        double denom = 0.;
-        for( int a = 0; a < nlambda; ++a ) {
-          denom += lengths[a] * exp(actions[b][i] * (lambdas[c] - lambdas[a]) + fas[a]);
-        }
-        sum += 1./denom;
+      for( int i = 0; i < lengths[b]; ++i ) {        
+        sum += P( lambdas[c], b, i, params, fas );
       }
     }
     eqns[c-1] = fas[c] + log(sum);
@@ -91,18 +99,21 @@ int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
 int main( void ) {
   //   char* filename = "/data2/Results/GN/red/24x23x23/results_1/Configs/ScalarField_ScalarOnConfig_.47.dat";
   
-  int nlambda = 2;
+  int nlambda = 3;
   double lambdas[nlambda];
   lambdas[0] = 0.46;
   lambdas[1] = 0.47;
+  lambdas[2] = 0.48;
   //   int V = 24 * 23 * 23;
   
   char* sfNames[nlambda];
   sfNames[0] = "/data2/Results/GN/red/24x23x23/results_1/Configs/ScalarField_ScalarOnConfig_.46.dat";
   sfNames[1] = "/data2/Results/GN/red/24x23x23/results_1/Configs/ScalarField_ScalarOnConfig_.47.dat";
-  char* actionNames[2];
+  sfNames[2] = "/data2/Results/GN/red/24x23x23/results_1/Configs/ScalarField_ScalarOnConfig_.48.dat";
+  char* actionNames[nlambda];
   actionNames[0] = "/data2/Results/GN/red/24x23x23/results_1/Configs/BosonicAction_ScalarOnConfig_.46.dat";
   actionNames[1] = "/data2/Results/GN/red/24x23x23/results_1/Configs/BosonicAction_ScalarOnConfig_.47.dat";
+  actionNames[2] = "/data2/Results/GN/red/24x23x23/results_1/Configs/BosonicAction_ScalarOnConfig_.48.dat";
   
   double* sfVals[nlambda];
   double* actionVals[nlambda];
@@ -126,7 +137,7 @@ int main( void ) {
     
     numData += length[numLambda];
     
-    
+    //TODO: thermalization
     free( count1 );
     free( count2 );
   }
@@ -158,7 +169,7 @@ int main( void ) {
   const gsl_multiroot_fsolver_type *T;
   gsl_multiroot_fsolver *s;
   
-  const size_t n = 1;
+  const size_t n = nlambda - 1;
   size_t iter = 0;
   int status;
   
