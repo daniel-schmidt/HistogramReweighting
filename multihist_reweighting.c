@@ -42,13 +42,14 @@ struct rparams {
 
 void print_state (size_t iter, gsl_multiroot_fsolver * s)
 {
-  printf ("iter = %3u x = % .3f % .3f "
-  "f(x) = % .3e % .3e\n",
+  printf ("iter = %3zu x = % .3f "
+  "f(x) = % .3e \n",
           iter,
           gsl_vector_get (s->x, 0), 
-          gsl_vector_get (s->x, 1),
-          gsl_vector_get (s->f, 0), 
-          gsl_vector_get (s->f, 1));
+//           gsl_vector_get (s->x, 1),
+          gsl_vector_get (s->f, 0)
+//           gsl_vector_get (s->f, 1)
+  );
 }
 
 int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
@@ -58,13 +59,13 @@ int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
   int nlambda = ( ( struct rparams * ) params )->nlambda;
   
   double fas[nlambda];
-  double eqns[nlambda];
-  for( int a = 0; a < nlambda; ++a ) {
-    fas[a] = gsl_vector_get( x, a );
-    eqns[a] = -fas[a];
+  double eqns[nlambda-1];
+  fas[0] = 0.;
+  for( int a = 1; a < nlambda; ++a ) {
+    fas[a] = gsl_vector_get( x, a-1 );
   }
   
-  for( int c = 0; c < nlambda; ++c ) {
+  for( int c = 1; c < nlambda; ++c ) {
     double sum = 0.;
     for( int b = 0; b < nlambda; ++b ) {
       for( int i = 0; i < lengths[b]; ++i ) {
@@ -75,10 +76,10 @@ int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
         sum += 1./denom;
       }
     }
-    eqns[c] = fas[c] + log(sum);
+    eqns[c-1] = fas[c] + log(sum);
   }
   
-  for( int a = 0; a < nlambda; ++a ) {
+  for( int a = 0; a < nlambda-1; ++a ) {
     printf("eqn %d: %f\n", a, eqns[a]);
     gsl_vector_set( eqn, a, eqns[a] );
   }
@@ -139,16 +140,16 @@ int main( void ) {
     nlambda,
   };
   
-  gsl_vector *fa = gsl_vector_alloc( nlambda );
-  gsl_vector *eqns = gsl_vector_alloc( nlambda );
-  for( int numLambda = 0; numLambda < nlambda; ++numLambda ) {
-    gsl_vector_set( fa, numLambda, 10*numLambda );
+  gsl_vector *fa = gsl_vector_alloc( nlambda-1 );
+  gsl_vector *eqns = gsl_vector_alloc( nlambda-1 );
+  for( int numLambda = 0; numLambda < nlambda-1; ++numLambda ) {
+    gsl_vector_set( fa, numLambda, 10*(numLambda+1) );
   }
   
   // testing equation evaluation on initial values
   equation( fa, &p, eqns );
   
-  for( int numLambda = 0; numLambda < nlambda; ++numLambda ){
+  for( int numLambda = 0; numLambda < nlambda-1; ++numLambda ){
     printf( "equation value: %lf\n", gsl_vector_get( eqns, numLambda ) );
     free( sfVals[numLambda] );
     free( actionVals[numLambda] );
@@ -157,13 +158,13 @@ int main( void ) {
   const gsl_multiroot_fsolver_type *T;
   gsl_multiroot_fsolver *s;
   
-  const size_t n = 2;
+  const size_t n = 1;
   size_t iter = 0;
   int status;
   
   gsl_multiroot_function f = {&equation, n, &p};
   T = gsl_multiroot_fsolver_hybrids;
-  s = gsl_multiroot_fsolver_alloc(T, 2);
+  s = gsl_multiroot_fsolver_alloc(T, n);
   gsl_multiroot_fsolver_set( s, &f, fa );
   
   print_state(iter, s);
