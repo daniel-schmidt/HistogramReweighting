@@ -95,6 +95,26 @@ int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
   return GSL_SUCCESS;
 }
 
+double calcObservable( double lambda, double** observableData, void* params, double* fasSolution ){
+  int nlambda = ( ( struct rparams * ) params )->nlambda;
+  int* lengths = ( ( struct rparams* ) params )->lengths;
+  
+  double denom = 0.;
+  for( int b = 0; b < nlambda; ++b ) {
+    for( int i = 0; i < lengths[b]; ++i ) {        
+      denom += P( lambda, b, i, params, fasSolution );
+    }
+  }
+  
+  double numerator = 0.;
+  for( int b = 0; b < nlambda; ++b ) {
+    for( int i = 0; i < lengths[b]; ++i ) {        
+      numerator += observableData[b][i] * P( lambda, b, i, params, fasSolution );
+    }
+  }
+  
+  return numerator / denom;
+}
 
 int main( void ) {
   //   char* filename = "/data2/Results/GN/red/24x23x23/results_1/Configs/ScalarField_ScalarOnConfig_.47.dat";
@@ -160,11 +180,6 @@ int main( void ) {
   // testing equation evaluation on initial values
   equation( fa, &p, eqns );
   
-  for( int numLambda = 0; numLambda < nlambda-1; ++numLambda ){
-    printf( "equation value: %lf\n", gsl_vector_get( eqns, numLambda ) );
-    free( sfVals[numLambda] );
-    free( actionVals[numLambda] );
-  }
   
   const gsl_multiroot_fsolver_type *T;
   gsl_multiroot_fsolver *s;
@@ -197,8 +212,21 @@ int main( void ) {
   
   printf ("status = %s\n", gsl_strerror (status));
   
+  double fasSolution[nlambda];
+  fasSolution[0] = 0.;
+  for( int a = 1; a < nlambda; ++a ) {
+    fasSolution[a] = gsl_vector_get( s->x, a-1 );
+  }
+  double result = calcObservable( 0.44, sfVals, &p, fasSolution );
+  printf("value for 0.44: %.6f\n", result);
+  
   gsl_multiroot_fsolver_free (s);
   
+  for( int numLambda = 0; numLambda < nlambda-1; ++numLambda ){
+//     printf( "equation value: %lf\n", gsl_vector_get( eqns, numLambda ) );
+    free( sfVals[numLambda] );
+    free( actionVals[numLambda] );
+  }
   gsl_vector_free( fa );
   gsl_vector_free( eqns );
   return EXIT_SUCCESS;
