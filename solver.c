@@ -12,16 +12,15 @@ void print_state (size_t iter, gsl_multiroot_fsolver * s)
   );
 }
 
-long double P( double lambda, int b, int i, void * params, double* fas ) {  
+long double P( double lambda, int bi, void * params, double* fas ) {  
   double* lambdas = ( ( struct rparams* ) params )->lambdas;
-  double** actions = ( ( struct rparams* ) params )->actions;
+  double* actions = ( ( struct rparams* ) params )->actions;
   int* lengths = ( ( struct rparams* ) params )->lengths;
   int nlambda = ( ( struct rparams * ) params )->nlambda;
   
-  
   long double denom = 0.L;
   for( int a = 0; a < nlambda; ++a ) {
-    denom += lengths[a] * expl( (long double) (actions[b][i] * (lambda - lambdas[a]) + fas[a]));
+    denom += lengths[a] * expl( (long double) (actions[bi] * (lambda - lambdas[a]) + fas[a]));
   }
   return 1./denom;
 }
@@ -29,7 +28,8 @@ long double P( double lambda, int b, int i, void * params, double* fas ) {
 int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
   double* lambdas = ( ( struct rparams* ) params )->lambdas;
   int nlambda = ( ( struct rparams * ) params )->nlambda;
-  int* lengths = ( ( struct rparams* ) params )->lengths;
+  size_t naction = ( ( struct rparams* ) params )->naction;
+  
   double fas[nlambda];
   double eqns[nlambda-1];
   fas[0] = 0.;
@@ -39,10 +39,8 @@ int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
   
   for( int c = 1; c < nlambda; ++c ) {
     long double sum = 0.L;
-    for( int b = 0; b < nlambda; ++b ) {
-      for( int i = 0; i < lengths[b]; ++i ) {        
-        sum += P( lambdas[c], b, i, params, fas );
-      }
+    for( int bi = 0; bi < naction; ++bi ) {
+      sum += P( lambdas[c], bi, params, fas );
     }
     eqns[c-1] = fas[c] + (double) logl(sum);
   }
@@ -105,25 +103,4 @@ void calcSolution( struct rparams* params, double* sol ) {
   gsl_multiroot_fsolver_free (s);
   gsl_vector_free( fa );
   gsl_vector_free( eqns );
-}
-
-double calcObservable( double lambda, double** observableData, void* params, double* fasSolution ){
-  int nlambda = ( ( struct rparams * ) params )->nlambda;
-  int* lengths = ( ( struct rparams* ) params )->lengths;
-  
-  long double denom = 0.L;
-  for( int b = 0; b < nlambda; ++b ) {
-    for( int i = 0; i < lengths[b]; ++i ) {        
-      denom += P( lambda, b, i, params, fasSolution );
-    }
-  }
-  
-  long double numerator = 0.L;
-  for( int b = 0; b < nlambda; ++b ) {
-    for( int i = 0; i < lengths[b]; ++i ) {        
-      numerator += observableData[b][i] * P( lambda, b, i, params, fasSolution );
-    }
-  }
-  printf( "numerator: %.10Le, denom: %.10Le, quotient: %.10Le\n", numerator, denom, numerator/denom);
-  return (double) (numerator / denom);
 }

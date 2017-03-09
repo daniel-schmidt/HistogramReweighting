@@ -5,6 +5,7 @@
 
 #include "io.h"
 #include "solver.h"
+#include "observables.h"
 
 int main( void ) {
   
@@ -22,21 +23,32 @@ int main( void ) {
   readPathsFromFile( "sf_paths.txt", nlambda, sfNames );
   readPathsFromFile( "action_paths.txt", nlambda, actionNames );
   
-  double* sfVals[nlambda];
-  double* actionVals[nlambda];
-  int length[nlambda];
+  double* sfVals = NULL;
+  double* actionVals = NULL;
+  int lengths[nlambda];
 
-  readData( nlambda, sfNames, sfVals, actionNames, actionVals, length );
+  size_t len_total = readData( nlambda, sfNames, &sfVals, actionNames, &actionVals, lengths );
+  printf("Read a total of %zu data points to %p and %p\n", len_total, sfVals, actionVals);
+//   for( size_t i = 0; i < len_total; ++i ) {
+//     printf("sf: %.2f, act: %.2f\n", sfVals[i], actionVals[i]);
+//   }
   // Set parameters and calculate solution
   struct rparams p = {
     lambdas,
     actionVals,
-    length,
+    lengths,
     nlambda,
+    len_total
   };
   
   double fasSolution[nlambda];
   calcSolution( &p, fasSolution );
+  
+  // Calculate input data for observables
+//   double** sfabs = malloc( sizeof sfVals );
+//   double** square = malloc( sizeof sfVals );
+//   double** fourth_power = malloc( sizeof sfVals );
+//   calculateOnConfigData( sfVals, nlambda, lengths, sfabs, square, fourth_power ); 
   
   // Use solution to calculate interpolations
   size_t numInterpol = 100;
@@ -55,10 +67,7 @@ int main( void ) {
   }
   
   // Cleanup
-  for( int numLambda = 0; numLambda < nlambda-1; ++numLambda ){
-    free( sfVals[numLambda] );
-    free( actionVals[numLambda] );
-  }
-
+  free( sfVals );
+  free( actionVals );
   return EXIT_SUCCESS;
 }

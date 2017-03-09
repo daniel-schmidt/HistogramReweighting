@@ -1,7 +1,7 @@
 TARGET = multihist
 LIBS = -lgsl -lgslcblas -lm
 CC = clang-3.6
-CFLAGS = -std=gnu11 -Wall
+CFLAGS = -std=gnu11 -Wall -g
 
 .PHONY: default all clean
 

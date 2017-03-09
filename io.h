@@ -7,8 +7,8 @@
 
 void readPathsFromFile( const char* filename, const size_t nlambda, char** paths );
 
-int readOnConfigFile( char* filename, int** firstCol, double** secondCol );
+int readOnConfigFile( char* filename, int* firstCol, double** secondCol, size_t offset );
 
-void readData( int nlambda, char** sfNames, double** sfVals, char** actionNames, double** actionVals, int* length );
+size_t readData( int nlambda, char** sfNames, double** sfVals, char** actionNames, double** actionVals, int* length );
 
 #endif
