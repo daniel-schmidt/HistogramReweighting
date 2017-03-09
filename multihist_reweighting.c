@@ -45,10 +45,11 @@ int main( void ) {
   calcSolution( &p, fasSolution );
   
   // Calculate input data for observables
-//   double** sfabs = malloc( sizeof sfVals );
-//   double** square = malloc( sizeof sfVals );
-//   double** fourth_power = malloc( sizeof sfVals );
-//   calculateOnConfigData( sfVals, nlambda, lengths, sfabs, square, fourth_power ); 
+  double* sfabs  = malloc( len_total * sizeof *sfVals );
+  double* square = malloc( len_total * sizeof *sfVals );
+  double* fourth = malloc( len_total * sizeof *sfVals );
+  double* abs_Sb = malloc( len_total * sizeof *sfVals );
+  calculateOnConfigData( sfVals, actionVals, len_total, sfabs, square, fourth, abs_Sb ); 
   
   // Use solution to calculate interpolations
   size_t numInterpol = 100;
@@ -57,17 +58,34 @@ int main( void ) {
   double d_lam = (lam_max - lam_min) / numInterpol;
   printf( "Calculating interpolation from %.3f to %.3f in steps of %.3f\n", lam_min, lam_max, d_lam);
   
-  double interpol_x[numInterpol];
-  double interpol_y[numInterpol];
+  double interpol_lam    [numInterpol];
+  double interpol_sfabs  [numInterpol];
+  double interpol_square [numInterpol];
+  double interpol_fourth [numInterpol];
+  double interpol_Sb     [numInterpol];
+  double interpol_absSb  [numInterpol];
   for( size_t n = 0; n <= numInterpol; ++n )
   {
-    interpol_x[n] = lam_min + n * d_lam;
-    interpol_y[n] = calcObservable( interpol_x[n], sfVals, &p, fasSolution );
-    printf("%.6f %.6f\n", interpol_x[n], interpol_y[n]);
+    interpol_lam[n]    = lam_min + n * d_lam;
+    interpol_sfabs[n]  = calcObservable( interpol_lam[n], sfabs,      &p, fasSolution );
+    interpol_square[n] = calcObservable( interpol_lam[n], square,     &p, fasSolution );
+    interpol_fourth[n] = calcObservable( interpol_lam[n], fourth,     &p, fasSolution );
+    interpol_Sb[n]     = calcObservable( interpol_lam[n], actionVals, &p, fasSolution );
+    interpol_absSb[n]  = calcObservable( interpol_lam[n], abs_Sb,     &p, fasSolution );
+    printf("%.6f %.6f %.6f %.6f %.6f\n"
+      , interpol_lam[n]
+      , interpol_sfabs[n]
+      , interpol_square[n] - interpol_sfabs[n] * interpol_sfabs[n]
+      , 1.-interpol_fourth[n] / (3 * interpol_square[n]*interpol_square[n] )
+      , interpol_absSb[n] / interpol_sfabs[n] - interpol_Sb[n]
+    );
   }
   
   // Cleanup
   free( sfVals );
   free( actionVals );
+  free( sfabs );
+  free( square );
+  free( fourth );
   return EXIT_SUCCESS;
 }

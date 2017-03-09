@@ -1,14 +1,14 @@
 #include "observables.h"
 
-void calculateOnConfigData( double const* const* sf, const size_t nlambda, const size_t* lengths, double** sfabs, double** square, double** fourth_power ) {
-  for( size_t a = 0; a < nlambda; ++a ) {
-    for( size_t i = 0; i < lengths[a]; ++i ) {
-      double valOnConf = sf[a][i];
-      sfabs[a][i] = fabs( valOnConf );
-      double valSquare = valOnConf*valOnConf;
-      square[a][i] = valSquare;
-      fourth_power[a][i] = valSquare * valSquare;
-    }
+void calculateOnConfigData( double const* const sf, double const* const action, const size_t len_total, double* sfabs, double* square, double* fourth_power, double* abs_times_action ) {
+  for( size_t ai = 0; ai < len_total; ++ai ) {
+    double valOnConf = sf[ai];
+    double absOnConf = fabs( valOnConf );
+    sfabs[ai] = absOnConf;
+    double valSquare = valOnConf*valOnConf;
+    square[ai] = valSquare;
+    fourth_power[ai] = valSquare * valSquare;
+    abs_times_action[ai] = absOnConf * action[ai];
   }
 }
 
