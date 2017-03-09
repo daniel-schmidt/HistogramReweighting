@@ -9,7 +9,7 @@
 int main( void ) {
   
   // Load data
-  int nlambda = 3;
+  int nlambda = 4;
   double lambdas[nlambda];
   char* sfNames[nlambda];
   char* actionNames[nlambda];
@@ -17,20 +17,16 @@ int main( void ) {
   lambdas[0] = 0.46;
   lambdas[1] = 0.47;
   lambdas[2] = 0.48;
-    
-  sfNames[0] = "/data2/Results/GN/red/24x23x23/results_1/Configs/ScalarField_ScalarOnConfig_.46.dat";
-  sfNames[1] = "/data2/Results/GN/red/24x23x23/results_1/Configs/ScalarField_ScalarOnConfig_.47.dat";
-  sfNames[2] = "/data2/Results/GN/red/24x23x23/results_1/Configs/ScalarField_ScalarOnConfig_.48.dat";
-  actionNames[0] = "/data2/Results/GN/red/24x23x23/results_1/Configs/BosonicAction_ScalarOnConfig_.46.dat";
-  actionNames[1] = "/data2/Results/GN/red/24x23x23/results_1/Configs/BosonicAction_ScalarOnConfig_.47.dat";
-  actionNames[2] = "/data2/Results/GN/red/24x23x23/results_1/Configs/BosonicAction_ScalarOnConfig_.48.dat";
+  lambdas[3] = 0.49;
+  
+  readPathsFromFile( "sf_paths.txt", nlambda, sfNames );
+  readPathsFromFile( "action_paths.txt", nlambda, actionNames );
   
   double* sfVals[nlambda];
   double* actionVals[nlambda];
   int length[nlambda];
 
   readData( nlambda, sfNames, sfVals, actionNames, actionVals, length );
-  
   // Set parameters and calculate solution
   struct rparams p = {
     lambdas,

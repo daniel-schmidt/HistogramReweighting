@@ -3,6 +3,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
+void readPathsFromFile( const char* filename, const size_t nlambda, char** paths );
 
 int readOnConfigFile( char* filename, int** firstCol, double** secondCol );
 

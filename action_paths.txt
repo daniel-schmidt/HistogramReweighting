@@ -1,0 +1,4 @@
+/data2/Results/GN/red/24x23x23/results_1/Configs/BosonicAction_ScalarOnConfig_.46.dat
+/data2/Results/GN/red/24x23x23/results_1/Configs/BosonicAction_ScalarOnConfig_.47.dat
+/data2/Results/GN/red/24x23x23/results_1/Configs/BosonicAction_ScalarOnConfig_.48.dat
+/data2/Results/GN/red/24x23x23/results_1/Configs/BosonicAction_ScalarOnConfig_.49.dat
