@@ -52,7 +52,7 @@ int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
   return GSL_SUCCESS;
 }
 
-void calcSolution( struct rparams* params, double* sol ) {
+void calcSolution( struct rparams * params, double* sol ) {
   int nlambda = params->nlambda;
   
   // setting initial values

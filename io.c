@@ -1,5 +1,48 @@
 #include "io.h"
 
+size_t countLines( FILE* file ) {
+  size_t linesCount = 0;
+  while( !feof( file ) ) {
+    char ch = fgetc( file );
+    if( ch=='\n' ) {
+      linesCount++;
+    }
+  }
+  rewind(file);
+  
+  printf( "File has %zu lines.\n", linesCount );
+  return linesCount;
+}
+
+size_t readLambdasFromFile( char const * const filename, double** lambdas ) {
+  if( filename == NULL ) {
+    printf("ERROR: readOnConfigFile got an empty file name.");
+    exit(1);
+  }
+  
+  FILE* file = fopen( filename, "r" );
+  if( file == NULL ) {
+    printf("ERROR: file not found for import in readLambdasFromFile: %s\n", filename);
+    exit(1);
+  }
+  
+  size_t linesCount = countLines( file );
+
+  *lambdas = malloc( linesCount * sizeof *lambdas );
+  if( *lambdas == NULL ) {
+    printf("ERROR: memory allocation failed.");
+    exit(1);
+  }
+  
+  for( int i = 0; i < linesCount; ++i ) {
+    fscanf( file, "%lf", *lambdas + i );
+//     printf( "read %d and %.10lf\n", firstCol[i], secondCol[i+offset] );
+  }
+  fclose(file);
+  
+  return linesCount;
+}
+
 void readPathsFromFile( const char* filename, const size_t nlambda, char** paths ) {
   FILE* file = fopen( filename, "r" );
   if( file == NULL ) {
@@ -27,19 +70,12 @@ int readOnConfigFile( char* filename, int* firstCol, double** secondCol, size_t 
   
   FILE* file = fopen( filename, "r" );
   if( file == NULL ) {
-    printf("ERROR: file not found for import: %s\n", filename);
+    printf("ERROR: file not found for import in readOnConfigFile: %s\n", filename);
     exit(1);
   }
   
-  int linesCount = 0;
-  while( !feof( file ) ) {
-    char ch = fgetc( file );
-    if( ch=='\n' ) {
-      linesCount++;
-    }
-  }
+  size_t linesCount = countLines( file );
   
-  printf( "File has %d lines.\n", linesCount );
   firstCol = malloc( linesCount * sizeof *firstCol );
   double* newSecondCol = realloc( *secondCol, (offset + linesCount) * sizeof(double));
   if( newSecondCol == NULL ) {
@@ -47,7 +83,6 @@ int readOnConfigFile( char* filename, int* firstCol, double** secondCol, size_t 
     exit(1);
   }
   *secondCol = newSecondCol;
-  rewind(file);
   
   for( int i = 0; i < linesCount; ++i ) {
     fscanf( file, "%d%lf", firstCol + i, (*secondCol)+i+offset );
