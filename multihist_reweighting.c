@@ -35,7 +35,12 @@ int main( int argc, char** argv ) {
   size_t numThermal = 100;
   size_t len_total = readData( numThermal, nlambda, sfNames, &sfVals, actionNames, &actionVals, lengths );
   printf("Read a total of %zu data points.\n", len_total);
-
+  
+  for( size_t a = 0; a < nlambda; ++a ) {    
+    free( sfNames[a] );
+    free( actionNames[a] );
+  }
+  
   // Set parameters and calculate solution
   size_t numInterpol = 101;
   
@@ -76,6 +81,11 @@ int main( int argc, char** argv ) {
   double bin_ip_bc    [numInterpol];
   double bin_ip_dlog  [numInterpol];
   
+  FILE* fileBinAbs = fopen( "BinnedScalarFieldAbs.dat", "w" );  
+  FILE* fileBinSus = fopen( "BinnedSusceptibility.dat", "w" );
+  FILE* fileBinBC = fopen( "BinnedBinderCumulant.dat", "w" );
+  FILE* fileBinDlog = fopen( "BinnedDLogScalarField.dat", "w" );
+  
   for( size_t boot = 0; boot < Nboot; ++boot ) {
     printf( "Calculating bootstrap sample %zu...\n", boot );
     random_select( actionVals, sfVals, lengths, nlambda, bin_size, actionSelect, sfSelect );
@@ -86,8 +96,22 @@ int main( int argc, char** argv ) {
       err_sus[ip]   += (bin_ip_sus[ip] - ip_sus[ip])     * (bin_ip_sus[ip] - ip_sus[ip]);
       err_bc[ip]    += (bin_ip_bc[ip] - ip_bc[ip])       * (bin_ip_bc[ip] - ip_bc[ip]);
       err_dlog[ip]  += (bin_ip_dlog[ip] - ip_dlog[ip])   * (bin_ip_dlog[ip] - ip_dlog[ip]);
+      
+      fprintf( fileBinAbs,  "%.10f ", bin_ip_sfabs[ip] );
+      fprintf( fileBinSus,  "%.10f ", bin_ip_sus[ip] );
+      fprintf( fileBinBC,   "%.10f ", bin_ip_bc[ip] );
+      fprintf( fileBinDlog, "%.10f ", bin_ip_dlog[ip] );
     }
+    fprintf( fileBinAbs, "\n");
+    fprintf( fileBinSus, "\n");
+    fprintf( fileBinBC, "\n");
+    fprintf( fileBinDlog, "\n");
   }
+  
+  fclose( fileBinAbs );
+  fclose( fileBinSus );
+  fclose( fileBinBC );
+  fclose( fileBinDlog );
   
   for( size_t ip = 0; ip < numInterpol; ++ip ) {
     err_sfabs[ip] = sqrt( err_sfabs[ip] / Nboot );
@@ -119,5 +143,11 @@ int main( int argc, char** argv ) {
   free( actionSelect );
   free( sfSelect );
   free( err_sfabs );
+  free( err_sus );
+  free( err_bc );
+  free( err_dlog );
+  
+  free( lambdas );
+  
   return EXIT_SUCCESS;
 }
