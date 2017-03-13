@@ -32,7 +32,8 @@ int main( int argc, char** argv ) {
   double* actionVals = NULL;
   int lengths[nlambda];
 
-  size_t len_total = readData( nlambda, sfNames, &sfVals, actionNames, &actionVals, lengths );
+  size_t numThermal = 100;
+  size_t len_total = readData( numThermal, nlambda, sfNames, &sfVals, actionNames, &actionVals, lengths );
   printf("Read a total of %zu data points.\n", len_total);
 
   // Set parameters and calculate solution
@@ -44,18 +45,19 @@ int main( int argc, char** argv ) {
     len_total
   };
   
-//   single_run( &p, sfVals );
+  single_run( &p, sfVals );
   
   // binning and bootstrapping for error estimates
-  srand(12);
-  size_t bin_size = 100;
-  double* actionSelect = malloc( len_total * sizeof *actionVals );
-  double* sfSelect = malloc( len_total * sizeof *sfVals );
-  random_select( actionVals, sfVals, lengths, nlambda, bin_size, actionSelect, sfSelect );
+//   int seed = 12;
+//   srand(seed);
+//   size_t bin_size = 100;
+//   double* actionSelect = malloc( len_total * sizeof *actionVals );
+//   double* sfSelect = malloc( len_total * sizeof *sfVals );
+//   random_select( actionVals, sfVals, lengths, nlambda, bin_size, actionSelect, sfSelect );
   
-  for( size_t i = 0; i < len_total; ++i ) {
-    printf("%.6f %.6f\n",actionSelect[i], sfSelect[i]);
-  }
+//   for( size_t i = 0; i < len_total; ++i ) {
+//     printf("%.6f %.6f\n",actionSelect[i], sfSelect[i]);
+//   }
   
   // Cleanup
   free( sfVals );

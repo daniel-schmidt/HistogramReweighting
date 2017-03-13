@@ -62,7 +62,7 @@ void readPathsFromFile( const char* filename, const size_t nlambda, char** paths
   fclose(file);
 }
 
-int readOnConfigFile( char* filename, int* firstCol, double** secondCol, size_t offset ) {
+int readOnConfigFile( const size_t numThermal, char* filename, double** secondCol, size_t offset ) {
   if( filename == NULL ) {
     printf("ERROR: readOnConfigFile got an empty file name.");
     exit(1);
@@ -76,7 +76,19 @@ int readOnConfigFile( char* filename, int* firstCol, double** secondCol, size_t 
   
   size_t linesCount = countLines( file );
   
-  firstCol = malloc( linesCount * sizeof *firstCol );
+  // skipping the first numThermal lines
+  for( size_t line = 0; line < numThermal; ++line ) {
+    fscanf(file, "%*[^\n]\n", NULL);
+  }
+  
+  if( numThermal >= linesCount ) {
+    printf("ERROR in readOnConfigFile: numThermal is larger than number of data lines!");
+    exit(1);
+  }
+  
+  linesCount -= numThermal;
+    
+  // enlarge the data array and append data from file to it
   double* newSecondCol = realloc( *secondCol, (offset + linesCount) * sizeof(double));
   if( newSecondCol == NULL ) {
     printf("ERROR: memory allocation failed.");
@@ -85,32 +97,24 @@ int readOnConfigFile( char* filename, int* firstCol, double** secondCol, size_t 
   *secondCol = newSecondCol;
   
   for( int i = 0; i < linesCount; ++i ) {
-    fscanf( file, "%d%lf", firstCol + i, (*secondCol)+i+offset );
-//     printf( "read %d and %.10lf\n", firstCol[i], secondCol[i+offset] );
+    fscanf( file, "%*d%lf", (*secondCol)+i+offset );    // read only second col and omit first
   }
   fclose(file);
   
   return linesCount;
 }
 
-size_t readData( int nlambda, char** sfNames, double** sfVals, char** actionNames, double** actionVals, int* lengths ) {
+size_t readData( const size_t numThermal, int nlambda, char** sfNames, double** sfVals, char** actionNames, double** actionVals, int* lengths ) {
   size_t offset = 0;
-  for( int numLambda = 0; numLambda < nlambda; ++numLambda ){
-    
-    int* count1 = NULL;         // TODO: count is not needed anywhere, can we skip reading this?
-    int* count2 = NULL;
-       
-    lengths[numLambda] = readOnConfigFile( sfNames[numLambda], count1, sfVals, offset );
-    int linesCountAction = readOnConfigFile( actionNames[numLambda], count2, actionVals, offset );
+  for( int numLambda = 0; numLambda < nlambda; ++numLambda ){      
+    lengths[numLambda] = readOnConfigFile( numThermal, sfNames[numLambda], sfVals, offset );
+    int linesCountAction = readOnConfigFile( numThermal, actionNames[numLambda], actionVals, offset );
     
     if( linesCountAction != lengths[numLambda] ) {
       printf("ERROR: files have different lengths.");
       exit(1);
     }
     offset += lengths[numLambda];
-    //TODO: thermalization
-    free( count1 );
-    free( count2 );
   }  
   return offset;
 }
