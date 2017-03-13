@@ -12,19 +12,21 @@ void calculateOnConfigData( double const* const sf, double const* const action, 
   }
 }
 
-double calcObservable( double lambda, double* observableData, void* params, double* fasSolution ) {
+long double calcPTable( double lambda, void* params, double const * const fasSolution, double* const PTable ) {
   size_t naction = ( ( struct rparams* ) params )->naction;
-  
   long double denom = 0.L;
   for( size_t bi = 0; bi < naction; ++bi ) {
-    denom += P( lambda, bi, params, fasSolution );
-    
+     PTable[bi] = P( lambda, bi, params, fasSolution );
+     denom += PTable[bi];
   }
-  
+  return denom;
+}
+
+double calcObservable( double const * const observableData, const long double denom, double const * const PTable, const size_t naction ) {
   long double numerator = 0.L;
   for( size_t bi = 0; bi < naction; ++bi ) {
-    numerator += observableData[bi] * P( lambda, bi, params, fasSolution );
+    numerator += observableData[bi] * PTable[bi];
   }
-//   printf( "numerator: %.10Le, denom: %.10Le, quotient: %.10Le\n", numerator, denom, numerator/denom);
+  //   printf( "numerator: %.10Le, denom: %.10Le, quotient: %.10Le\n", numerator, denom, numerator/denom);
   return (double) (numerator / denom);
 }

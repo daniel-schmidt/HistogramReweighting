@@ -32,7 +32,7 @@ int main( int argc, char** argv ) {
   double* actionVals = NULL;
   int lengths[nlambda];
 
-  size_t numThermal = 9000;
+  size_t numThermal = 100;
   size_t len_total = readData( numThermal, nlambda, sfNames, &sfVals, actionNames, &actionVals, lengths );
   printf("Read a total of %zu data points.\n", len_total);
   

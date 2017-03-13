@@ -13,7 +13,7 @@ void print_state (size_t iter, gsl_multiroot_fsolver * s)
   );
 }
 
-long double P( double lambda, int bi, void * params, double* fas ) {  
+long double P( double lambda, int bi, void * params, double const * const fas ) {  
   double* lambdas = ( ( struct rparams* ) params )->lambdas;
   double* actions = ( ( struct rparams* ) params )->actions;
   int* lengths = ( ( struct rparams* ) params )->lengths;

@@ -72,19 +72,24 @@ void single_run( struct rparams * p, double const * const sfVals, size_t const n
   double d_lam = (lam_max - lam_min) / (numInterpol-1);
   printf( "Calculating interpolation from %.3f to %.3f in steps of %.3f\n", lam_min, lam_max, d_lam);
   
+  double* PTable = malloc( len_total * sizeof *sfVals );
   for( size_t n = 0; n < numInterpol; ++n )
   {
     ip_lam[n]    = lam_min + n * d_lam;
-    ip_sfabs[n]  = calcObservable( ip_lam[n], sfabs,      p, fasSolution );
-    double interpol_square = calcObservable( ip_lam[n], square,     p, fasSolution );
-    double interpol_fourth = calcObservable( ip_lam[n], fourth,     p, fasSolution );
-    double interpol_Sb     = calcObservable( ip_lam[n], actionVals, p, fasSolution );
-    double interpol_absSb  = calcObservable( ip_lam[n], abs_Sb,     p, fasSolution );
+    
+    double denom = calcPTable( ip_lam[n], p, fasSolution, PTable );
+    
+    ip_sfabs[n]  =           calcObservable( sfabs,      denom, PTable, len_total );
+    double interpol_square = calcObservable( square,     denom, PTable, len_total );
+    double interpol_fourth = calcObservable( fourth,     denom, PTable, len_total );
+    double interpol_Sb     = calcObservable( actionVals, denom, PTable, len_total );
+    double interpol_absSb  = calcObservable( abs_Sb,     denom, PTable, len_total );
     
     ip_sus[n] = interpol_square - ip_sfabs[n] * ip_sfabs[n];
     ip_bc[n] = 1.-interpol_fourth / (3 * interpol_square * interpol_square );
     ip_dlog[n] = interpol_absSb / ip_sfabs[n] - interpol_Sb;
   }
+  free( PTable );
   free( sfabs );
   free( square );
   free( fourth );
