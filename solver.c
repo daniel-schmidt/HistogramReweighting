@@ -1,9 +1,10 @@
 #include "solver.h"
+gsl_vector* fa = NULL;
 
 void print_state (size_t iter, gsl_multiroot_fsolver * s)
 {
-  printf ("iter = %3zu x = % .3f, % .3f "
-  "f(x) = % .3e, % .3e \n",
+  printf ("iter = %2zu x = % .6f, % .6f "
+  "f(x) = % .6e, % .6e \n",
           iter,
           gsl_vector_get (s->x, 0), 
           gsl_vector_get (s->x, 1),
@@ -56,9 +57,11 @@ void calcSolution( struct rparams * params, double* sol ) {
   int nlambda = params->nlambda;
   
   // setting initial values
-  gsl_vector *fa = gsl_vector_alloc( nlambda-1 );
-  for( int numLambda = 0; numLambda < nlambda-1; ++numLambda ) {
-    gsl_vector_set( fa, numLambda, 10*(numLambda+1) );
+  if( fa == NULL ) {
+    fa = gsl_vector_alloc( nlambda-1 );
+    for( int numLambda = 0; numLambda < nlambda-1; ++numLambda ) {
+      gsl_vector_set( fa, numLambda, 10*(numLambda+1) );
+    }
   }
   
   // testing equation evaluation on initial values
@@ -98,9 +101,13 @@ void calcSolution( struct rparams * params, double* sol ) {
   sol[0] = 0.;
   for( int a = 1; a < nlambda; ++a ) {
     sol[a] = gsl_vector_get( s->x, a-1 );
+    gsl_vector_set( fa, a-1, sol[a] );
   }
-  
   gsl_multiroot_fsolver_free (s);
-  gsl_vector_free( fa );
   gsl_vector_free( eqns );
 }
+
+void freeSolver() {
+  gsl_vector_free( fa );
+}
+  

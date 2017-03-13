@@ -21,4 +21,6 @@ int equation( const gsl_vector * x, void * params, gsl_vector *eqn );
 
 void calcSolution( struct rparams * params, double* sol );
 
+void freeSolver();
+
 #endif
