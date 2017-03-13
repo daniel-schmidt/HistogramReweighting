@@ -33,7 +33,6 @@ void random_select( double const * const actionVals, double const * const sfVals
     
     for( size_t b = 0; b < num_bins; ++b ) {
       size_t bin_idx = randint( num_bins );
-      printf( "Chose block %zu.\n", bin_idx );
       
       memcpy( actionSelect + offset + b * bin_size
             , actionVals + offset + bin_idx * bin_size
@@ -51,7 +50,7 @@ void random_select( double const * const actionVals, double const * const sfVals
 }
 
 
-void single_run( struct rparams * p, double const * const sfVals ) {
+void single_run( struct rparams * p, double const * const sfVals, size_t const numInterpol, double* const ip_lam, double* const ip_sfabs, double* const ip_sus, double* const ip_bc, double* const ip_dlog ) {
   double* lambdas = p->lambdas;
   double* actionVals = p->actions;
   size_t nlambda = p->nlambda;
@@ -68,33 +67,23 @@ void single_run( struct rparams * p, double const * const sfVals ) {
   calculateOnConfigData( sfVals, actionVals, len_total, sfabs, square, fourth, abs_Sb ); 
   
   // Use solution to calculate interpolations
-  size_t numInterpol = 100;
   double lam_min = lambdas[0] - 0.02;
   double lam_max = lambdas[nlambda-1] + 0.02;
-  double d_lam = (lam_max - lam_min) / numInterpol;
+  double d_lam = (lam_max - lam_min) / (numInterpol-1);
   printf( "Calculating interpolation from %.3f to %.3f in steps of %.3f\n", lam_min, lam_max, d_lam);
   
-  double interpol_lam    [numInterpol];
-  double interpol_sfabs  [numInterpol];
-  double interpol_square [numInterpol];
-  double interpol_fourth [numInterpol];
-  double interpol_Sb     [numInterpol];
-  double interpol_absSb  [numInterpol];
-  for( size_t n = 0; n <= numInterpol; ++n )
+  for( size_t n = 0; n < numInterpol; ++n )
   {
-    interpol_lam[n]    = lam_min + n * d_lam;
-    interpol_sfabs[n]  = calcObservable( interpol_lam[n], sfabs,      p, fasSolution );
-    interpol_square[n] = calcObservable( interpol_lam[n], square,     p, fasSolution );
-    interpol_fourth[n] = calcObservable( interpol_lam[n], fourth,     p, fasSolution );
-    interpol_Sb[n]     = calcObservable( interpol_lam[n], actionVals, p, fasSolution );
-    interpol_absSb[n]  = calcObservable( interpol_lam[n], abs_Sb,     p, fasSolution );
-    printf("%.16f %.16f %.16f %.16f %.16f\n"
-      , interpol_lam[n]
-      , interpol_sfabs[n]
-      , interpol_square[n] - interpol_sfabs[n] * interpol_sfabs[n]
-      , 1.-interpol_fourth[n] / (3 * interpol_square[n]*interpol_square[n] )
-      , interpol_absSb[n] / interpol_sfabs[n] - interpol_Sb[n]
-    );
+    ip_lam[n]    = lam_min + n * d_lam;
+    ip_sfabs[n]  = calcObservable( ip_lam[n], sfabs,      p, fasSolution );
+    double interpol_square = calcObservable( ip_lam[n], square,     p, fasSolution );
+    double interpol_fourth = calcObservable( ip_lam[n], fourth,     p, fasSolution );
+    double interpol_Sb     = calcObservable( ip_lam[n], actionVals, p, fasSolution );
+    double interpol_absSb  = calcObservable( ip_lam[n], abs_Sb,     p, fasSolution );
+    
+    ip_sus[n] = interpol_square - ip_sfabs[n] * ip_sfabs[n];
+    ip_bc[n] = 1.-interpol_fourth / (3 * interpol_square * interpol_square );
+    ip_dlog[n] = interpol_absSb / ip_sfabs[n] - interpol_Sb;
   }
   free( sfabs );
   free( square );

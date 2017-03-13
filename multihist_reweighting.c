@@ -37,6 +37,8 @@ int main( int argc, char** argv ) {
   printf("Read a total of %zu data points.\n", len_total);
 
   // Set parameters and calculate solution
+  size_t numInterpol = 101;
+  
   struct rparams p = {
     lambdas,
     actionVals,
@@ -45,19 +47,33 @@ int main( int argc, char** argv ) {
     len_total
   };
   
-  single_run( &p, sfVals );
+  double ip_lam   [numInterpol];
+  double ip_sfabs [numInterpol];
+  double ip_sus   [numInterpol];
+  double ip_bc    [numInterpol];
+  double ip_dlog  [numInterpol];
+  
+  single_run( &p, sfVals, numInterpol, ip_lam, ip_sfabs, ip_sus, ip_bc, ip_dlog );
+  FILE * file = fopen("ip.dat", "w");
+  for( size_t ip = 0; ip < numInterpol; ++ip ) {
+    fprintf( file, "%.16f %.16f %.16f %.16f %.16f\n", ip_lam[ip], ip_sfabs[ip], ip_sus[ip], ip_bc[ip], ip_dlog[ip]);
+  }
   
   // binning and bootstrapping for error estimates
-//   int seed = 12;
-//   srand(seed);
-//   size_t bin_size = 100;
-//   double* actionSelect = malloc( len_total * sizeof *actionVals );
-//   double* sfSelect = malloc( len_total * sizeof *sfVals );
-//   random_select( actionVals, sfVals, lengths, nlambda, bin_size, actionSelect, sfSelect );
+  int seed = 12;
+  srand(seed);
+  size_t bin_size = 100;
+  size_t Nboot = 2;
   
-//   for( size_t i = 0; i < len_total; ++i ) {
-//     printf("%.6f %.6f\n",actionSelect[i], sfSelect[i]);
-//   }
+  double* actionSelect = malloc( len_total * sizeof *actionVals );
+  double* sfSelect = malloc( len_total * sizeof *sfVals );
+  
+  p.actions = actionSelect;
+  
+  for( size_t boot = 0; boot < Nboot; ++boot ) {
+//     random_select( actionVals, sfVals, lengths, nlambda, bin_size, actionSelect, sfSelect );
+//     single_run( &p, sfSelect );
+  }
   
   // Cleanup
   free( sfVals );
