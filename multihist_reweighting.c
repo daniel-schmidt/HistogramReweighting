@@ -54,30 +54,70 @@ int main( int argc, char** argv ) {
   double ip_dlog  [numInterpol];
   
   single_run( &p, sfVals, numInterpol, ip_lam, ip_sfabs, ip_sus, ip_bc, ip_dlog );
-  FILE * file = fopen("ip.dat", "w");
-  for( size_t ip = 0; ip < numInterpol; ++ip ) {
-    fprintf( file, "%.16f %.16f %.16f %.16f %.16f\n", ip_lam[ip], ip_sfabs[ip], ip_sus[ip], ip_bc[ip], ip_dlog[ip]);
-  }
-  
+   
   // binning and bootstrapping for error estimates
   int seed = 12;
   srand(seed);
   size_t bin_size = 100;
-  size_t Nboot = 2;
+  size_t Nboot = 20;
   
   double* actionSelect = malloc( len_total * sizeof *actionVals );
   double* sfSelect = malloc( len_total * sizeof *sfVals );
   
   p.actions = actionSelect;
   
+  double* err_sfabs = calloc( numInterpol * sizeof(double), sizeof(double) );
+  double* err_sus = calloc( numInterpol * sizeof(double), sizeof(double) );
+  double* err_bc = calloc( numInterpol * sizeof(double), sizeof(double) );
+  double* err_dlog = calloc( numInterpol * sizeof(double), sizeof(double) );
+
+  double bin_ip_sfabs [numInterpol];
+  double bin_ip_sus   [numInterpol];
+  double bin_ip_bc    [numInterpol];
+  double bin_ip_dlog  [numInterpol];
+  
   for( size_t boot = 0; boot < Nboot; ++boot ) {
-//     random_select( actionVals, sfVals, lengths, nlambda, bin_size, actionSelect, sfSelect );
-//     single_run( &p, sfSelect );
+    printf( "Calculating bootstrap sample %zu...\n", boot );
+    random_select( actionVals, sfVals, lengths, nlambda, bin_size, actionSelect, sfSelect );
+    single_run( &p, sfSelect, numInterpol, ip_lam, bin_ip_sfabs, bin_ip_sus, bin_ip_bc, bin_ip_dlog );
+    
+    for( size_t ip = 0; ip < numInterpol; ++ip ) {
+      err_sfabs[ip] += (bin_ip_sfabs[ip] - ip_sfabs[ip]) * (bin_ip_sfabs[ip] - ip_sfabs[ip]);
+      err_sus[ip]   += (bin_ip_sus[ip] - ip_sus[ip])     * (bin_ip_sus[ip] - ip_sus[ip]);
+      err_bc[ip]    += (bin_ip_bc[ip] - ip_bc[ip])       * (bin_ip_bc[ip] - ip_bc[ip]);
+      err_dlog[ip]  += (bin_ip_dlog[ip] - ip_dlog[ip])   * (bin_ip_dlog[ip] - ip_dlog[ip]);
+    }
   }
+  
+  for( size_t ip = 0; ip < numInterpol; ++ip ) {
+    err_sfabs[ip] = sqrt( err_sfabs[ip] / Nboot );
+    err_sus[ip]   = sqrt( err_sus[ip]   / Nboot );
+    err_bc[ip]    = sqrt( err_bc[ip]    / Nboot );
+    err_dlog[ip]  = sqrt( err_dlog[ip]  / Nboot );
+  }
+  
+  FILE * fileAbs = fopen("InterpolScalarFieldAbs.dat", "w");
+  FILE * fileSus = fopen("InterpolSusceptibility.dat", "w");
+  FILE * fileBC = fopen("InterpolBinderCumulant.dat", "w");
+  FILE * fileDlog = fopen("InterpolDLogScalarField.dat", "w");
+  
+  for( size_t ip = 0; ip < numInterpol; ++ip ) {
+    fprintf( fileAbs,  "%.10f %.10f %.10f \n", ip_lam[ip], ip_sfabs[ip], err_sfabs[ip] );
+    fprintf( fileSus,  "%.10f %.10f %.10f \n", ip_lam[ip], ip_sus[ip],   err_sus[ip] );
+    fprintf( fileBC,   "%.10f %.10f %.10f \n", ip_lam[ip], ip_bc[ip],    err_bc[ip] );
+    fprintf( fileDlog, "%.10f %.10f %.10f \n", ip_lam[ip], ip_dlog[ip],  err_dlog[ip] );
+  }
+  
+  fclose( fileAbs );
+  fclose( fileSus );
+  fclose( fileBC );
+  fclose( fileDlog );
   
   // Cleanup
   free( sfVals );
   free( actionVals );
-
+  free( actionSelect );
+  free( sfSelect );
+  free( err_sfabs );
   return EXIT_SUCCESS;
 }
