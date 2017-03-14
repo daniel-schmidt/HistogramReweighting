@@ -36,7 +36,11 @@ size_t readAutocorrFile( char const * const filename, double** lambdas, double**
   }
    
   for( int i = 0; i < linesCount; ++i ) {
-    fscanf( file, "%lf %*f %*f %*f %lf %*f", *lambdas + i, *autocorr + i );
+    int read = fscanf( file, "%lf %*f %*f %*f %lf %*f", *lambdas + i, *autocorr + i );
+    if( read != 2 ) {
+      puts( "ERROR in readAutocorrFile: read a wrong number of items from autocorrelation file." );
+      exit(1);
+    }
     (*autocorr)[i] = 1./(1. + 2. * (*autocorr)[i] );
   }
   fclose(file);
@@ -51,11 +55,14 @@ void readPathsFromFile( const char* filename, const size_t nlambda, char** paths
     exit(1);
   }
   size_t len = 0;
-  ssize_t read;
   
   for( size_t i = 0; i < nlambda; ++i ) {
     char* line = NULL;
-    read = getline( &line, &len, file );   // allocates memory for line
+    int read = getline( &line, &len, file );   // allocates memory for line
+    if( read == -1 ) {
+      puts( "ERROR reading line from PathFile." );
+      exit(1);
+    }
     line[ strcspn( line, "\n" ) ] = 0;     // remove trailing newline
     printf("read line: %s\n", line);
     paths[i] = line;
@@ -79,7 +86,11 @@ int readOnConfigFile( const size_t numThermal, char* filename, double** secondCo
   
   // skipping the first numThermal lines
   for( size_t line = 0; line < numThermal; ++line ) {
-    fscanf(file, "%*[^\n]\n", NULL);
+    int read = fscanf(file, "%*[^\n]\n");
+    if( read != 0 ) {
+      puts( "ERROR in readOnConfigFile: could not skip first lines" );
+      exit(1);
+    }
   }
   
   if( numThermal >= linesCount ) {
@@ -98,7 +109,11 @@ int readOnConfigFile( const size_t numThermal, char* filename, double** secondCo
   *secondCol = newSecondCol;
   
   for( int i = 0; i < linesCount; ++i ) {
-    fscanf( file, "%*d%lf", (*secondCol)+i+offset );    // read only second col and omit first
+    int read = fscanf( file, "%*d%lf", (*secondCol)+i+offset );    // read only second col and omit first
+    if( read != 1 ) {
+      puts( "ERROR in readOnConfigFile: read a wrong number of items from on-config-file." );
+      exit(1);
+    }
   }
   fclose(file);
   

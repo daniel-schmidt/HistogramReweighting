@@ -33,7 +33,7 @@ int main( int argc, char** argv ) {
   double* actionVals = NULL;
   int lengths[nlambda];
   
-  size_t numThermal = 9000;
+  size_t numThermal = 100;
   size_t len_total = readData( numThermal, nlambda, sfNames, &sfVals, actionNames, &actionVals, lengths );
   printf("Read a total of %zu data points.\n", len_total);
   
@@ -66,7 +66,7 @@ int main( int argc, char** argv ) {
   int seed = 12;
   srand(seed);
   size_t bin_size = 100;
-  size_t Nboot = 0;
+  size_t Nboot = 20;
   
   double* actionSelect = malloc( len_total * sizeof *actionVals );
   double* sfSelect = malloc( len_total * sizeof *sfVals );
