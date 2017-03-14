@@ -13,9 +13,9 @@ int main( int argc, char** argv ) {
   }
   
   if( sizeof(double) >= sizeof(long double) ){
-     printf("WARNING: long double seems no longer than double: %lu, long double: %lu", sizeof(double), sizeof(long double));
+    printf("WARNING: long double seems no longer than double: %lu, long double: %lu", sizeof(double), sizeof(long double));
   }
-
+  
   double* lambdas = 0;
   double* autocorr = 0;
   size_t nlambda = readAutocorrFile( argv[1], &lambdas, &autocorr );
@@ -32,8 +32,8 @@ int main( int argc, char** argv ) {
   double* sfVals = NULL;
   double* actionVals = NULL;
   int lengths[nlambda];
-
-  size_t numThermal = 100;
+  
+  size_t numThermal = 9000;
   size_t len_total = readData( numThermal, nlambda, sfNames, &sfVals, actionNames, &actionVals, lengths );
   printf("Read a total of %zu data points.\n", len_total);
   
@@ -61,12 +61,12 @@ int main( int argc, char** argv ) {
   double ip_dlog  [numInterpol];
   
   single_run( &p, sfVals, numInterpol, ip_lam, ip_sfabs, ip_sus, ip_bc, ip_dlog );
-   
+  
   // binning and bootstrapping for error estimates
   int seed = 12;
   srand(seed);
   size_t bin_size = 100;
-  size_t Nboot = 20;
+  size_t Nboot = 0;
   
   double* actionSelect = malloc( len_total * sizeof *actionVals );
   double* sfSelect = malloc( len_total * sizeof *sfVals );
@@ -77,7 +77,7 @@ int main( int argc, char** argv ) {
   double* err_sus = calloc( numInterpol * sizeof(double), sizeof(double) );
   double* err_bc = calloc( numInterpol * sizeof(double), sizeof(double) );
   double* err_dlog = calloc( numInterpol * sizeof(double), sizeof(double) );
-
+  
   double bin_ip_sfabs [numInterpol];
   double bin_ip_sus   [numInterpol];
   double bin_ip_bc    [numInterpol];
@@ -87,6 +87,17 @@ int main( int argc, char** argv ) {
   FILE* fileBinSus = fopen( "BinnedSusceptibility.dat", "w" );
   FILE* fileBinBC = fopen( "BinnedBinderCumulant.dat", "w" );
   FILE* fileBinDlog = fopen( "BinnedDLogScalarField.dat", "w" );
+  
+  for( size_t ip = 0; ip < numInterpol; ++ip ) {
+    fprintf( fileBinAbs,  "%.10f ", ip_lam[ip] );
+    fprintf( fileBinSus,  "%.10f ", ip_lam[ip] );
+    fprintf( fileBinBC,   "%.10f ", ip_lam[ip] );
+    fprintf( fileBinDlog, "%.10f ", ip_lam[ip] );
+  }
+  fprintf( fileBinAbs, "\n");
+  fprintf( fileBinSus, "\n");
+  fprintf( fileBinBC, "\n");
+  fprintf( fileBinDlog, "\n");
   
   for( size_t boot = 0; boot < Nboot; ++boot ) {
     printf( "Calculating bootstrap sample %zu...\n", boot );
