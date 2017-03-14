@@ -16,13 +16,14 @@ int main( int argc, char** argv ) {
      printf("WARNING: long double seems no longer than double: %lu, long double: %lu", sizeof(double), sizeof(long double));
   }
 
-  double* lambdas = NULL;
-  size_t nlambda = readLambdasFromFile( argv[1], &lambdas );
+  double* lambdas = 0;
+  double* autocorr = 0;
+  size_t nlambda = readAutocorrFile( argv[1], &lambdas, &autocorr );
   char* sfNames[nlambda];
   char* actionNames[nlambda];
   
   for( size_t n = 0; n < nlambda; ++n ) {
-    printf("lamb=%.3f\n", lambdas[n]);
+    printf("lamb=%.3f, autocorr=%.3f\n", lambdas[n], autocorr[n]);
   }
   
   readPathsFromFile( argv[2], nlambda, sfNames );
@@ -46,6 +47,7 @@ int main( int argc, char** argv ) {
   
   struct rparams p = {
     lambdas,
+    autocorr,
     actionVals,
     lengths,
     nlambda,

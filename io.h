@@ -7,7 +7,7 @@
 
 size_t countLines( FILE* file );
 
-size_t readLambdasFromFile( char const * const filename, double** lambdas );
+size_t readAutocorrFile( char const * const filename, double** lambdas, double** autocorr );
 
 void readPathsFromFile( const char* filename, const size_t nlambda, char** paths );
 

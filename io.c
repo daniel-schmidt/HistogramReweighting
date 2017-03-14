@@ -14,7 +14,7 @@ size_t countLines( FILE* file ) {
   return linesCount;
 }
 
-size_t readLambdasFromFile( char const * const filename, double** lambdas ) {
+size_t readAutocorrFile( char const * const filename, double** lambdas, double** autocorr ) {
   if( filename == NULL ) {
     printf("ERROR: readOnConfigFile got an empty file name.");
     exit(1);
@@ -28,15 +28,16 @@ size_t readLambdasFromFile( char const * const filename, double** lambdas ) {
   
   size_t linesCount = countLines( file );
 
-  *lambdas = malloc( linesCount * sizeof *lambdas );
-  if( *lambdas == NULL ) {
+  *lambdas  = malloc( linesCount * sizeof *lambdas );
+  *autocorr = malloc( linesCount * sizeof *autocorr );
+  if( *lambdas == 0 || *autocorr == 0 ) {
     printf("ERROR: memory allocation failed.");
     exit(1);
   }
-  
+   
   for( int i = 0; i < linesCount; ++i ) {
-    fscanf( file, "%lf", *lambdas + i );
-//     printf( "read %d and %.10lf\n", firstCol[i], secondCol[i+offset] );
+    fscanf( file, "%lf %*f %*f %*f %lf %*f", *lambdas + i, *autocorr + i );
+    (*autocorr)[i] = 1./(1. + 2. * (*autocorr)[i] );
   }
   fclose(file);
   

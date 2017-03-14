@@ -7,6 +7,7 @@
 
 struct rparams {
   double* lambdas;
+  double* autocorr;
   double* actions;
   int* lengths;
   int nlambda;

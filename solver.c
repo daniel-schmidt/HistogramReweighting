@@ -15,15 +15,25 @@ void print_state (size_t iter, gsl_multiroot_fsolver * s)
 
 long double P( double lambda, int bi, void * params, double const * const fas ) {  
   double* lambdas = ( ( struct rparams* ) params )->lambdas;
+  double* g = ( ( struct rparams* ) params )->autocorr;
   double* actions = ( ( struct rparams* ) params )->actions;
   int* lengths = ( ( struct rparams* ) params )->lengths;
   int nlambda = ( ( struct rparams * ) params )->nlambda;
   
   long double denom = 0.L;
   for( int a = 0; a < nlambda; ++a ) {
-    denom += lengths[a] * expl( (long double) (actions[bi] * (lambda - lambdas[a]) + fas[a]));
+    denom += lengths[a] * g[a] * expl( (long double) (actions[bi] * (lambda - lambdas[a]) + fas[a]));
   }
-  return 1./denom;
+  
+  // determine b for g[b] from bi by subtracting previous lengths of data
+  int b;
+  for( b = 0; b < nlambda; ++b ) {
+    bi -= lengths[b];
+    if( bi < 0 ) {
+      break;
+    }
+  }
+  return g[b]/denom;
 }
 
 int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
