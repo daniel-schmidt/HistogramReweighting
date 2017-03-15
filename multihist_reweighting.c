@@ -2,13 +2,14 @@
 #include <math.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_multiroots.h>
+#include <time.h>
 
 #include "io.h"
 #include "single_run.h"
 
 int main( int argc, char** argv ) {
-  if( argc != 4 ) {
-    printf( "ERROR: Need 3 input parameters: lambdas.txt sf_paths.txt action_paths.txt\n" );
+  if( argc != 5 ) {
+    printf( "ERROR: Need 4 input parameters: lambdas.txt sf_paths.txt action_paths.txt subfolder_name\n" );
     exit(1);
   }
   
@@ -63,8 +64,7 @@ int main( int argc, char** argv ) {
   single_run( &p, sfVals, numInterpol, ip_lam, ip_sfabs, ip_sus, ip_bc, ip_dlog );
   
   // binning and bootstrapping for error estimates
-  int seed = 12;
-  srand(seed);
+  srand(time(0));
   size_t bin_size = 100;
   size_t Nboot = 20;
   
@@ -83,21 +83,31 @@ int main( int argc, char** argv ) {
   double bin_ip_bc    [numInterpol];
   double bin_ip_dlog  [numInterpol];
   
-  FILE* fileBinAbs = fopen( "BinnedScalarFieldAbs.dat", "w" );  
-  FILE* fileBinSus = fopen( "BinnedSusceptibility.dat", "w" );
-  FILE* fileBinBC = fopen( "BinnedBinderCumulant.dat", "w" );
-  FILE* fileBinDlog = fopen( "BinnedDLogScalarField.dat", "w" );
+ 
+  const size_t numObservables = 4;
+  char* filenames[numObservables];
+  filenames[0] = "/BinnedScalarFieldAbs.dat";
+  filenames[1] = "/BinnedSusceptibility.dat";
+  filenames[2] = "/BinnedBinderCumulant.dat";
+  filenames[3] = "/BinnedDLogScalarField.dat";
+  FILE* files[numObservables];
   
-  for( size_t ip = 0; ip < numInterpol; ++ip ) {
-    fprintf( fileBinAbs,  "%.10f ", ip_lam[ip] );
-    fprintf( fileBinSus,  "%.10f ", ip_lam[ip] );
-    fprintf( fileBinBC,   "%.10f ", ip_lam[ip] );
-    fprintf( fileBinDlog, "%.10f ", ip_lam[ip] );
+  for( size_t k = 0; k < numObservables; ++k ) {
+    char outpath[80] = { 0 };
+    strcat( outpath, argv[4] );
+    strcat( outpath, filenames[k] );
+    char mkdircommand[80] = { 0 };
+    strcat( mkdircommand, "mkdir -p ");
+    strcat( mkdircommand, argv[4] );
+    if( system( mkdircommand ) != 0 ) {
+      puts( "ERROR: could not execute command to create file." );
+    }
+    files[k] = fopen( outpath, "w" );
+    for( size_t ip = 0; ip < numInterpol; ++ip ) {
+      fprintf( files[k],  "%.10f ", ip_lam[ip] );
+    }
+    fprintf( files[k], "\n");
   }
-  fprintf( fileBinAbs, "\n");
-  fprintf( fileBinSus, "\n");
-  fprintf( fileBinBC, "\n");
-  fprintf( fileBinDlog, "\n");
   
   for( size_t boot = 0; boot < Nboot; ++boot ) {
     printf( "Calculating bootstrap sample %zu...\n", boot );
@@ -110,22 +120,22 @@ int main( int argc, char** argv ) {
       err_bc[ip]    += (bin_ip_bc[ip] - ip_bc[ip])       * (bin_ip_bc[ip] - ip_bc[ip]);
       err_dlog[ip]  += (bin_ip_dlog[ip] - ip_dlog[ip])   * (bin_ip_dlog[ip] - ip_dlog[ip]);
       
-      fprintf( fileBinAbs,  "%.10f ", bin_ip_sfabs[ip] );
-      fprintf( fileBinSus,  "%.10f ", bin_ip_sus[ip] );
-      fprintf( fileBinBC,   "%.10f ", bin_ip_bc[ip] );
-      fprintf( fileBinDlog, "%.10f ", bin_ip_dlog[ip] );
+      fprintf( files[0],  "%.10f ", bin_ip_sfabs[ip] );
+      fprintf( files[1],  "%.10f ", bin_ip_sus[ip] );
+      fprintf( files[2],   "%.10f ", bin_ip_bc[ip] );
+      fprintf( files[3], "%.10f ", bin_ip_dlog[ip] );
     }
-    fprintf( fileBinAbs, "\n");
-    fprintf( fileBinSus, "\n");
-    fprintf( fileBinBC, "\n");
-    fprintf( fileBinDlog, "\n");
+    
+    for( size_t k = 0; k < numObservables; ++k ) {
+      fprintf( files[k], "\n");
+    }
   }
   
-  fclose( fileBinAbs );
-  fclose( fileBinSus );
-  fclose( fileBinBC );
-  fclose( fileBinDlog );
+  for( size_t k = 0; k < numObservables; ++k ) {
+    fclose( files[k] );
+  }
   
+  // Writing full interpolations with error to files
   for( size_t ip = 0; ip < numInterpol; ++ip ) {
     err_sfabs[ip] = sqrt( err_sfabs[ip] / Nboot );
     err_sus[ip]   = sqrt( err_sus[ip]   / Nboot );
@@ -133,22 +143,28 @@ int main( int argc, char** argv ) {
     err_dlog[ip]  = sqrt( err_dlog[ip]  / Nboot );
   }
   
-  FILE * fileAbs = fopen("InterpolScalarFieldAbs.dat", "w");
-  FILE * fileSus = fopen("InterpolSusceptibility.dat", "w");
-  FILE * fileBC = fopen("InterpolBinderCumulant.dat", "w");
-  FILE * fileDlog = fopen("InterpolDLogScalarField.dat", "w");
+  filenames[0] = "/InterpolScalarFieldAbs.dat";
+  filenames[1] = "/InterpolSusceptibility.dat";
+  filenames[2] = "/InterpolBinderCumulant.dat";
+  filenames[3] = "/InterpolDLogScalarField.dat";
   
-  for( size_t ip = 0; ip < numInterpol; ++ip ) {
-    fprintf( fileAbs,  "%.10f %.10f %.10f \n", ip_lam[ip], ip_sfabs[ip], err_sfabs[ip] );
-    fprintf( fileSus,  "%.10f %.10f %.10f \n", ip_lam[ip], ip_sus[ip],   err_sus[ip] );
-    fprintf( fileBC,   "%.10f %.10f %.10f \n", ip_lam[ip], ip_bc[ip],    err_bc[ip] );
-    fprintf( fileDlog, "%.10f %.10f %.10f \n", ip_lam[ip], ip_dlog[ip],  err_dlog[ip] );
+  for( size_t k = 0; k < numObservables; ++k ) {
+    char outpath[80] = { 0 };
+    strcat( outpath, argv[4] );
+    strcat( outpath, filenames[k] );
+    files[k] = fopen( outpath, "w" );
   }
   
-  fclose( fileAbs );
-  fclose( fileSus );
-  fclose( fileBC );
-  fclose( fileDlog );
+  for( size_t ip = 0; ip < numInterpol; ++ip ) {
+    fprintf( files[0], "%.10f %.10f %.10f \n", ip_lam[ip], ip_sfabs[ip], err_sfabs[ip] );
+    fprintf( files[1], "%.10f %.10f %.10f \n", ip_lam[ip], ip_sus[ip],   err_sus[ip] );
+    fprintf( files[2], "%.10f %.10f %.10f \n", ip_lam[ip], ip_bc[ip],    err_bc[ip] );
+    fprintf( files[3], "%.10f %.10f %.10f \n", ip_lam[ip], ip_dlog[ip],  err_dlog[ip] );
+  }
+  
+  for( size_t k = 0; k < numObservables; ++k ) {
+    fclose( files[k] );
+  }
   
   // Cleanup
   free( sfVals );
