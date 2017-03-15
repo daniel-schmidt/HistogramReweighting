@@ -8,15 +8,16 @@
 #include "single_run.h"
 
 int main( int argc, char** argv ) {
-  if( argc != 5 ) {
-    printf( "ERROR: Need 4 input parameters: lambdas.txt sf_paths.txt action_paths.txt subfolder_name\n" );
+  if( argc != 6 ) {
+    printf( "ERROR: Need 4 input parameters: lambdas.txt sf_paths.txt action_paths.txt subfolder_name L\n" );
     exit(1);
   }
   
   if( sizeof(double) >= sizeof(long double) ){
     printf("WARNING: long double seems no longer than double: %lu, long double: %lu", sizeof(double), sizeof(long double));
   }
-  
+  const size_t L = atoi(argv[5]);
+  const size_t V = L*(L-1)*(L-1);
   double* lambdas = 0;
   double* autocorr = 0;
   size_t nlambda = readAutocorrFile( argv[1], &lambdas, &autocorr );
@@ -61,12 +62,12 @@ int main( int argc, char** argv ) {
   double ip_bc    [numInterpol];
   double ip_dlog  [numInterpol];
   
-  single_run( &p, sfVals, numInterpol, ip_lam, ip_sfabs, ip_sus, ip_bc, ip_dlog );
+  single_run( V, &p, sfVals, numInterpol, ip_lam, ip_sfabs, ip_sus, ip_bc, ip_dlog );
   
   // binning and bootstrapping for error estimates
   srand(time(0));
   size_t bin_size = 100;
-  size_t Nboot = 20;
+  size_t Nboot = 10;
   
   double* actionSelect = malloc( len_total * sizeof *actionVals );
   double* sfSelect = malloc( len_total * sizeof *sfVals );
@@ -112,7 +113,7 @@ int main( int argc, char** argv ) {
   for( size_t boot = 0; boot < Nboot; ++boot ) {
     printf( "Calculating bootstrap sample %zu...\n", boot );
     random_select( actionVals, sfVals, lengths, nlambda, bin_size, actionSelect, sfSelect );
-    single_run( &p, sfSelect, numInterpol, ip_lam, bin_ip_sfabs, bin_ip_sus, bin_ip_bc, bin_ip_dlog );
+    single_run( V, &p, sfSelect, numInterpol, ip_lam, bin_ip_sfabs, bin_ip_sus, bin_ip_bc, bin_ip_dlog );
     
     for( size_t ip = 0; ip < numInterpol; ++ip ) {
       err_sfabs[ip] += (bin_ip_sfabs[ip] - ip_sfabs[ip]) * (bin_ip_sfabs[ip] - ip_sfabs[ip]);

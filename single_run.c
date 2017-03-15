@@ -50,7 +50,7 @@ void random_select( double const * const actionVals, double const * const sfVals
 }
 
 
-void single_run( struct rparams * p, double const * const sfVals, size_t const numInterpol, double* const ip_lam, double* const ip_sfabs, double* const ip_sus, double* const ip_bc, double* const ip_dlog ) {
+void single_run( const size_t V, struct rparams * p, double const * const sfVals, size_t const numInterpol, double* const ip_lam, double* const ip_sfabs, double* const ip_sus, double* const ip_bc, double* const ip_dlog ) {
   double* lambdas = p->lambdas;
   double* actionVals = p->actions;
   size_t nlambda = p->nlambda;
@@ -85,7 +85,7 @@ void single_run( struct rparams * p, double const * const sfVals, size_t const n
     double interpol_Sb     = calcObservable( actionVals, denom, PTable, len_total );
     double interpol_absSb  = calcObservable( abs_Sb,     denom, PTable, len_total );
     
-    ip_sus[n] = interpol_square - ip_sfabs[n] * ip_sfabs[n];
+    ip_sus[n] = V*(interpol_square - ip_sfabs[n] * ip_sfabs[n]);
     ip_bc[n] = 1.-interpol_fourth / (3 * interpol_square * interpol_square );
     ip_dlog[n] = interpol_absSb / ip_sfabs[n] - interpol_Sb;
   }

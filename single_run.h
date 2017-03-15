@@ -16,7 +16,8 @@ void random_select( double const * const actionVals
                   , double* sfSelect
                   );
 
-void single_run( struct rparams * p
+void single_run( const size_t V
+               , struct rparams * p
                , double const * const sfVals
                , const size_t numInterpol
                , double* const ip_lam
