@@ -67,7 +67,7 @@ int main( int argc, char** argv ) {
   // binning and bootstrapping for error estimates
   srand(time(0));
   size_t bin_size = 100;
-  size_t Nboot = 10;
+  size_t Nboot = 20;
   
   double* actionSelect = malloc( len_total * sizeof *actionVals );
   double* sfSelect = malloc( len_total * sizeof *sfVals );
