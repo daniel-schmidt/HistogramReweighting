@@ -25,7 +25,7 @@ int main( int argc, char** argv ) {
   char* actionNames[nlambda];
   
   for( size_t n = 0; n < nlambda; ++n ) {
-    printf("lamb=%.3f, autocorr=%.3f\n", lambdas[n], autocorr[n]);
+    printf("lamb=%.3f, 1/(1+2*autocorr)=%.3f\n", lambdas[n], autocorr[n]);
   }
   
   readPathsFromFile( argv[2], nlambda, sfNames );
@@ -35,9 +35,9 @@ int main( int argc, char** argv ) {
   double* actionVals = NULL;
   int lengths[nlambda];
   
-  size_t numThermal = 100;
+  size_t numThermal = 200;
   size_t len_total = readData( numThermal, nlambda, sfNames, &sfVals, actionNames, &actionVals, lengths );
-  printf("Read a total of %zu data points.\n", len_total);
+  printf("Skipped %zu thermalisation each, have a total of %zu data points.\n", numThermal, len_total);
   
   for( size_t a = 0; a < nlambda; ++a ) {    
     free( sfNames[a] );
