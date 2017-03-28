@@ -12,7 +12,7 @@ def getLambdaFromFile(filename):
   return float(m.group(0)), n.group(1)
 
 
-def run_interpolation( Nf, L, lambda_min, lambda_max):
+def run_interpolation( Nf, L, lambda_min, lambda_max, N_boot ):
   
   base_path = "/data2/Results/GN/red/%dx%dx%d/results_%d/Configs/" % (L, L-1, L-1, Nf)
   base_files = ["ScalarField_ScalarOnConfig_", "BosonicAction_ScalarOnConfig_"]
@@ -58,7 +58,8 @@ def run_interpolation( Nf, L, lambda_min, lambda_max):
   command = ["./multihist",
             *out_names,
             "%dx%dx%d/" % (L, L-1, L-1),
-            "%d" % L]
+            "%d" % L,
+            "%d" % N_boot]
   time_start = time.time()
   #print(command)
   subp.run(command)
@@ -67,5 +68,6 @@ def run_interpolation( Nf, L, lambda_min, lambda_max):
   
 if __name__ == "__main__":
   LList = [10, 12, 16, 24]
+  N_boot = 10
   for L in LList:
-    run_interpolation(1, L, 0.448, 0.488)
+    run_interpolation(1, L, 0.46, 0.488, N_boot)
