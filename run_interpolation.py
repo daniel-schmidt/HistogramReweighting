@@ -68,6 +68,6 @@ def run_interpolation( Nf, L, lambda_min, lambda_max, N_boot ):
   
 if __name__ == "__main__":
   LList = [10, 12, 16, 24]
-  N_boot = 10
+  N_boot = 50
   for L in LList:
     run_interpolation(1, L, 0.46, 0.488, N_boot)
