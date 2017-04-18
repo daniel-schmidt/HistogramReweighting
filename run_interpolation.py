@@ -5,6 +5,11 @@ import glob
 import numpy as np
 
 def getLambdaFromFile(filename):
+  """Use a regular expression to find the value of the coupling in the filename.
+  
+     The file is expected to have the coupling value at the end of the filename
+     as a number preceeded by '.dat'.
+  """
   findLambda=re.compile('\.\d+(?=.dat)')
   findName=re.compile('^(.*)_.*')
   m = findLambda.search(filename)
@@ -12,18 +17,27 @@ def getLambdaFromFile(filename):
   return float(m.group(0)), n.group(1)
 
 
-def run_interpolation( Nf, L, lambda_min, lambda_max, N_boot ):
-  
+def run_interpolation( Nf, L, lambda_min, lambda_max, N_boot, N_thermal ):  
+  """ Creates the necessary input files and runs the C code to obtain interpolations.
+  """
   base_path = "/data2/Results/GN/red/%dx%dx%d/results_%d/Configs/" % (L, L-1, L-1, Nf)
   base_files = ["ScalarField_ScalarOnConfig_", "BosonicAction_ScalarOnConfig_"]
   out_names = []
   
   # load autocorrelation and filter for coupling range
   autocorr_file = base_path + "IntAutocorrTime.dat"
-  autocorr = np.loadtxt(autocorr_file)
+  try:
+    autocorr = np.loadtxt(autocorr_file)
+  except FileNotFoundError:
+    # If the autocorrelation file does not exist, we call the octave script to calculate it.
+    print("Autocorrelation must be computed beforehand!")
+    command = [ "./calcAutocorr", str(Nf), str(L), str(N_thermal)]
+    subp.run(command)
+    autocorr = np.loadtxt(autocorr_file)
+  
+  # filter out the autocorrelations where the coupling is in the given range
   ac_filter = np.logical_and(autocorr[:, 0] >= lambda_min, autocorr[:, 0] <= lambda_max)
   autocorr = autocorr[ac_filter]
-  print(autocorr)
   out_names.append("IntAutocorrTime_%d_%d.dat" % (Nf, L))
   np.savetxt(out_names[-1], autocorr, "%.5f")
 
@@ -47,27 +61,25 @@ def run_interpolation( Nf, L, lambda_min, lambda_max, N_boot ):
       print("ERROR: file not found")
       exit()
     out_names.append(out_name)
-  
-  
-  #command = ["./multihist",
-             #"IntAutocorrTime-%d-6.dat" % L,
-             #"sf%d-6.txt" % L,
-             #"action%d-6.txt" % L,
-             #"%dx%dx%d/" % (L, L-1, L-1),
-             #"%d" % L]
+
+  # set up C command and execute it
   command = ["./multihist",
             *out_names,
             "%dx%dx%d/" % (L, L-1, L-1),
             "%d" % L,
             "%d" % N_boot]
   time_start = time.time()
-  #print(command)
   subp.run(command)
   time_end = time.time()
   print("Main loop took %.2f seconds." % (time_end-time_start) )
   
 if __name__ == "__main__":
-  LList = [10, 12, 16, 24]
-  N_boot = 20
+  #LList = [10, 12, 16, 20, 24]
+  LList = [20]
+  N_boot = 0
+  Nf = 1
+  lam_min = 0.46
+  lam_max = 0.488
+  N_thermal = 200
   for L in LList:
-    run_interpolation(1, L, 0.46, 0.488, N_boot)
+    run_interpolation(Nf, L, lam_min, lam_max, N_boot, N_thermal)

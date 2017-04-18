@@ -1,0 +1,8 @@
+#! /usr/bin/octave -qf
+arg_list = argv ();
+if nargin != 3
+  printf("ERROR calculating autocorrelation: need argumens Nf, L and numThermal!\n")
+else
+  autocorr_GN(str2num(arg_list{1}), str2num(arg_list{2}), str2num(arg_list{3}));
+endif
+printf("Integrated autocorrelation time computed.\n")
