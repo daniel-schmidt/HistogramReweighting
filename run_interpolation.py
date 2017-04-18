@@ -75,11 +75,11 @@ def run_interpolation( Nf, L, lambda_min, lambda_max, N_boot, N_thermal ):
   
 if __name__ == "__main__":
   #LList = [10, 12, 16, 20, 24]
-  LList = [20]
-  N_boot = 0
+  LList = [24]
+  N_boot = 10
   Nf = 1
-  lam_min = 0.46
-  lam_max = 0.488
+  lam_min = 0.44
+  lam_max = 0.496
   N_thermal = 200
   for L in LList:
     run_interpolation(Nf, L, lam_min, lam_max, N_boot, N_thermal)

@@ -12,6 +12,7 @@ struct rparams {
   int* lengths;
   int nlambda;
   size_t naction;
+  double f0;
 };
 
 void print_state (size_t iter, gsl_multiroot_fsolver * s);

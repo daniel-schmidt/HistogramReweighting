@@ -58,6 +58,11 @@ void single_run( const size_t V, struct rparams * p, double const * const sfVals
   
   double fasSolution[nlambda];
   calcSolution( p, fasSolution );
+  printf("Full solution: ");
+  for( size_t nl = 0; nl < nlambda; nl++ ) {
+    printf("%.3f ", fasSolution[nl]);
+  }
+  printf("\n");
   
   // Calculate input data for observables
   double* sfabs  = malloc( len_total * sizeof *sfVals );
@@ -67,8 +72,8 @@ void single_run( const size_t V, struct rparams * p, double const * const sfVals
   calculateOnConfigData( sfVals, actionVals, len_total, sfabs, square, fourth, abs_Sb ); 
   
   // Use solution to calculate interpolations
-  double lam_min = lambdas[0] - 0.02;
-  double lam_max = lambdas[nlambda-1] + 0.02;
+  double lam_min = lambdas[0] - 0.01;
+  double lam_max = lambdas[nlambda-1] + 0.01;
   double d_lam = (lam_max - lam_min) / (numInterpol-1);
   printf( "Calculating interpolation from %.3f to %.3f in steps of %.3f\n", lam_min, lam_max, d_lam);
   
@@ -78,7 +83,6 @@ void single_run( const size_t V, struct rparams * p, double const * const sfVals
     ip_lam[n]    = lam_min + n * d_lam;
     
     double denom = calcPTable( ip_lam[n], p, fasSolution, PTable );
-    
     ip_sfabs[n]  =           calcObservable( sfabs,      denom, PTable, len_total );
     double interpol_square = calcObservable( square,     denom, PTable, len_total );
     double interpol_fourth = calcObservable( fourth,     denom, PTable, len_total );

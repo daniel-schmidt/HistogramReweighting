@@ -43,7 +43,7 @@ int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
   
   double fas[nlambda];
   double eqns[nlambda-1];
-  fas[0] = 0.;
+  fas[0] = ( ( struct rparams* ) params )->f0;
   for( int a = 1; a < nlambda; ++a ) {
     fas[a] = gsl_vector_get( x, a-1 );
   }
@@ -66,11 +66,12 @@ int equation( const gsl_vector * x, void * params, gsl_vector *eqn ) {
 void calcSolution( struct rparams * params, double* sol ) {
   int nlambda = params->nlambda;
   
-  // setting initial values
+  // setting initial values, differences of 10 seem to work quite general
   if( fa == NULL ) {
+    const double del_fa = 10.;
     fa = gsl_vector_alloc( nlambda-1 );
     for( int numLambda = 0; numLambda < nlambda-1; ++numLambda ) {
-      gsl_vector_set( fa, numLambda, 10*(numLambda+1) );
+      gsl_vector_set( fa, numLambda, del_fa*(numLambda+1) + (params->f0) );
     }
   }
   
@@ -108,7 +109,7 @@ void calcSolution( struct rparams * params, double* sol ) {
   
   printf ("status = %s\n", gsl_strerror (status));
   
-  sol[0] = 0.;
+  sol[0] = params->f0;
   for( int a = 1; a < nlambda; ++a ) {
     sol[a] = gsl_vector_get( s->x, a-1 );
     gsl_vector_set( fa, a-1, sol[a] );

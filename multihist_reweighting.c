@@ -46,6 +46,7 @@ int main( int argc, char** argv ) {
   
   // Set parameters and calculate solution
   size_t numInterpol = 101;
+  double f0 = -300;
   
   struct rparams p = {
     lambdas,
@@ -53,7 +54,8 @@ int main( int argc, char** argv ) {
     actionVals,
     lengths,
     nlambda,
-    len_total
+    len_total,
+    f0
   };
   
   double ip_lam   [numInterpol];
