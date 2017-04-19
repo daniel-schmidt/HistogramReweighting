@@ -72,8 +72,8 @@ void single_run( const size_t V, struct rparams * p, double const * const sfVals
   calculateOnConfigData( sfVals, actionVals, len_total, sfabs, square, fourth, abs_Sb ); 
   
   // Use solution to calculate interpolations
-  double lam_min = lambdas[0] - 0.01;
-  double lam_max = lambdas[nlambda-1] + 0.01;
+  double lam_min = lambdas[0];
+  double lam_max = lambdas[nlambda-1];
   double d_lam = (lam_max - lam_min) / (numInterpol-1);
   printf( "Calculating interpolation from %.3f to %.3f in steps of %.3f\n", lam_min, lam_max, d_lam);
   

@@ -8,8 +8,8 @@
 #include "single_run.h"
 
 int main( int argc, char** argv ) {
-  if( argc != 7 ) {
-    printf( "ERROR: Need 6 input parameters: lambdas.txt sf_paths.txt action_paths.txt subfolder_name L N_boot\n" );
+  if( argc != 9 ) {
+    printf( "ERROR: Need 8 input parameters: lambdas.txt sf_paths.txt action_paths.txt subfolder_name L N_boot, N_thermal, f0-shift\n" );
     exit(1);
   }
   
@@ -35,7 +35,7 @@ int main( int argc, char** argv ) {
   double* actionVals = NULL;
   int lengths[nlambda];
   
-  size_t numThermal = 200;
+  size_t numThermal = atoi(argv[7]);
   size_t len_total = readData( numThermal, nlambda, sfNames, &sfVals, actionNames, &actionVals, lengths );
   printf("Skipped %zu thermalisation each, have a total of %zu data points.\n", numThermal, len_total);
   
@@ -46,7 +46,7 @@ int main( int argc, char** argv ) {
   
   // Set parameters and calculate solution
   size_t numInterpol = 101;
-  double f0 = -300;
+  double f0 = atof(argv[8]);
   
   struct rparams p = {
     lambdas,
