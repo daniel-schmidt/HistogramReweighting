@@ -8,8 +8,8 @@
 #include "single_run.h"
 
 int main( int argc, char** argv ) {
-  if( argc != 9 ) {
-    printf( "ERROR: Need 8 input parameters: lambdas.txt sf_paths.txt action_paths.txt subfolder_name L N_boot, N_thermal, f0-shift\n" );
+  if( argc != 10 ) {
+    printf( "ERROR: Need 9 input parameters: lambdas.txt sf_paths.txt action_paths.txt subfolder_name L N_boot, N_thermal, f0-shift, N_interpol\n" );
     exit(1);
   }
   
@@ -45,8 +45,8 @@ int main( int argc, char** argv ) {
   }
   
   // Set parameters and calculate solution
-  size_t numInterpol = 101;
   double f0 = atof(argv[8]);
+  size_t numInterpol = atoi(argv[9]);
   
   struct rparams p = {
     lambdas,

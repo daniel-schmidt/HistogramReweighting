@@ -75,7 +75,7 @@ void single_run( const size_t V, struct rparams * p, double const * const sfVals
   double lam_min = lambdas[0];
   double lam_max = lambdas[nlambda-1];
   double d_lam = (lam_max - lam_min) / (numInterpol-1);
-  printf( "Calculating interpolation from %.3f to %.3f in steps of %.3f\n", lam_min, lam_max, d_lam);
+  printf( "Calculating interpolation from %.3f to %.3f in steps of %.5f\n", lam_min, lam_max, d_lam);
   
   double* PTable = malloc( len_total * sizeof *sfVals );
   for( size_t n = 0; n < numInterpol; ++n )

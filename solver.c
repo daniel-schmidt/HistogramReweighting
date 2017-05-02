@@ -68,7 +68,7 @@ void calcSolution( struct rparams * params, double* sol ) {
   
   // setting initial values, differences of 10 seem to work quite general
   if( fa == NULL ) {
-    const double del_fa = 10.;
+    const double del_fa = 1.;
     fa = gsl_vector_alloc( nlambda-1 );
     for( int numLambda = 0; numLambda < nlambda-1; ++numLambda ) {
       gsl_vector_set( fa, numLambda, del_fa*(numLambda+1) + (params->f0) );
