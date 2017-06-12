@@ -3,6 +3,7 @@ import time
 import re
 import glob
 import numpy as np
+import os
 
 def getLambdaFromFile(filename):
   """Use a regular expression to find the value of the coupling in the filename.
@@ -23,7 +24,7 @@ def getLambdaFromFile(filename):
   return  lam, name
 
 
-def run_interpolation( Nf, L, lambda_min, lambda_max, N_boot, N_thermal, f0, N_interpol ):  
+def run_interpolation( Nf, L, lambda_min, lambda_max, N_boot, bin_size, N_thermal, f0, N_interpol ):  
   """ Creates the necessary input files and runs the C code to obtain interpolations.
   """
   base_path = "/data2/Results/GN/red/%dx%dx%d/results_%d/Configs/" % (L, L-1, L-1, Nf)
@@ -70,35 +71,48 @@ def run_interpolation( Nf, L, lambda_min, lambda_max, N_boot, N_thermal, f0, N_i
       exit()
     out_names.append(out_name)
 
+  legend = ["Nf", "L", "lambda_min", "lambda_max", "N_boot", "bin_size", "N_thermal", "f0", "N_interpol"]
+  parameters = [Nf, L, lambda_min, lambda_max, N_boot, bin_size, N_thermal, f0, N_interpol]
+  
+  out_dir = "%dx%dx%d/" % (L, L-1, L-1)
+  if not os.path.exists(out_dir):
+    os.makedirs(out_dir)
+  with open( out_dir + "parameters.dat", 'w' ) as file_handle:
+    print( legend, file = file_handle)
+    print( parameters, file = file_handle)
+    print( "Time: ", time.time(), file = file_handle)
+    
   # set up C command and execute it
   command = ["./multihist",
             *out_names,
-            "%dx%dx%d/" % (L, L-1, L-1),
+            out_dir,
             str(L),
             str(N_boot),
+            str(bin_size),
             str(N_thermal),
             str(f0),
             str(N_interpol)]
+  
   #time_start = time.time()
   #subp.run(command)
   process = subp.Popen(command)
   #time_end = time.time()
   #print("Main loop took %.2f seconds." % (time_end-time_start) )
-  legend = ["Nf", "L", "lambda_min", "lambda_max", "N_boot", "N_thermal", "f0", "N_interpol"]
-  parameters = [Nf, L, lambda_min, lambda_max, N_boot, N_thermal, f0, N_interpol]
-  with open( "%dx%dx%d/parameters.dat" % (L, L-1, L-1), 'w' ) as file_handle:
-    print( parameters, file = file_handle)
   
   return process
   
 if __name__ == "__main__":
-  #LList = [10, 12, 16, 20, 24]
-  #f0List = [-40, -70, -170, -350, -600]
-  #LList = [8]
-  #f0List = [-20] 
+  #LList = [20, 24]
+  #LList = [8, 10, 12, 16, 20, 24]
+  #f0List = [-20, -40, -70, -170, -350, -600]
+  #f0List = [-350, -1000]
+  #LList = [14]
+  #f0List = [-100] 
+  #LList = [6]
+  #f0List = [-8] 
   #Nf = 1
-  #lam_min = 0.44
-  #lam_max = 0.52
+  #lam_min = 0.424
+  #lam_max = 0.496
   
   #LList = [8, 10, 12, 16, 20, 24]
   #f0List = [-20, -40, -70, -170, -350, -475]
@@ -109,19 +123,22 @@ if __name__ == "__main__":
   #lam_max = 1.312
   
   LList = [8, 12, 16, 20, 24]
-  f0List = [-20, -70, -170, -350, -475]
+  f0List = [-20, -70, -170, -330, -475]
+  #LList = [20]
+  #f0List = [-350]
   Nf = 8
   lam_min = 5.312
   lam_max = 6.208
   
-  N_boot = 10
+  N_boot = 200
+  bin_size = 50
   N_thermal = 200
-  N_interpol = 101
+  N_interpol = 301
   
   time_start = time.time()
   proc_list = []
   for f0, L in zip(f0List, LList):
-    proc_list.append(run_interpolation(Nf, L, lam_min, lam_max, N_boot, N_thermal, f0, N_interpol))
+    proc_list.append(run_interpolation(Nf, L, lam_min, lam_max, N_boot, bin_size, N_thermal, f0, N_interpol))
   
   for proc in proc_list:
     proc.wait()

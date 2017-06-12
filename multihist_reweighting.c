@@ -8,8 +8,8 @@
 #include "single_run.h"
 
 int main( int argc, char** argv ) {
-  if( argc != 10 ) {
-    printf( "ERROR: Need 9 input parameters: lambdas.txt sf_paths.txt action_paths.txt subfolder_name L N_boot, N_thermal, f0-shift, N_interpol\n" );
+  if( argc != 11 ) {
+    printf( "ERROR: Need 10 input parameters: lambdas.txt sf_paths.txt action_paths.txt subfolder_name L N_boot, bin_size, N_thermal, f0-shift, N_interpol\n" );
     exit(1);
   }
   
@@ -35,7 +35,7 @@ int main( int argc, char** argv ) {
   double* actionVals = NULL;
   int lengths[nlambda];
   
-  size_t numThermal = atoi(argv[7]);
+  size_t numThermal = atoi(argv[8]);
   size_t len_total = readData( numThermal, nlambda, sfNames, &sfVals, actionNames, &actionVals, lengths );
   printf("Skipped %zu thermalisation each, have a total of %zu data points.\n", numThermal, len_total);
   
@@ -45,8 +45,8 @@ int main( int argc, char** argv ) {
   }
   
   // Set parameters and calculate solution
-  double f0 = atof(argv[8]);
-  size_t numInterpol = atoi(argv[9]);
+  double f0 = atof(argv[9]);
+  size_t numInterpol = atoi(argv[10]);
   
   struct rparams p = {
     lambdas,
@@ -68,8 +68,8 @@ int main( int argc, char** argv ) {
   
   // binning and bootstrapping for error estimates
   srand(time(0));
-  size_t bin_size = 100;
   size_t Nboot = atoi(argv[6]);
+  size_t bin_size = atoi(argv[7]);
   
   double* actionSelect = malloc( len_total * sizeof *actionVals );
   double* sfSelect = malloc( len_total * sizeof *sfVals );
