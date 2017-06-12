@@ -100,16 +100,23 @@ if __name__ == "__main__":
   #lam_min = 0.44
   #lam_max = 0.52
   
-  LList = [8, 10, 12, 16, 20, 24]
-  f0List = [-20, -40, -70, -170, -350, -475]
+  #LList = [8, 10, 12, 16, 20, 24]
+  #f0List = [-20, -40, -70, -170, -350, -475]
   #LList = [24]
   #f0List = [-475]
-  Nf = 2
-  lam_min = 1.136
-  lam_max = 1.312
-  N_boot = 20
+  #Nf = 2
+  #lam_min = 1.136
+  #lam_max = 1.312
+  
+  LList = [8, 12, 16, 20, 24]
+  f0List = [-20, -70, -170, -350, -475]
+  Nf = 8
+  lam_min = 5.312
+  lam_max = 6.208
+  
+  N_boot = 10
   N_thermal = 200
-  N_interpol = 301
+  N_interpol = 101
   
   time_start = time.time()
   proc_list = []
