@@ -86,12 +86,12 @@ void single_run( const size_t V, struct rparams * p, double const * const sfVals
     ip_sfabs[n]  =           calcObservable( sfabs,      denom, PTable, len_total );
     double interpol_square = calcObservable( square,     denom, PTable, len_total );
     double interpol_fourth = calcObservable( fourth,     denom, PTable, len_total );
-//     double interpol_Sb     = calcObservable( actionVals, denom, PTable, len_total );
+    double interpol_Sb     = calcObservable( actionVals, denom, PTable, len_total );
     double interpol_absSb  = calcObservable( abs_Sb,     denom, PTable, len_total );
     
     ip_sus[n] = V*(interpol_square - ip_sfabs[n] * ip_sfabs[n]);
     ip_bc[n] = 1.-interpol_fourth / (3 * interpol_square * interpol_square );
-    ip_dlog[n] = interpol_absSb / ip_sfabs[n] - 0.5 * interpol_square * V *V;
+    ip_dlog[n] = interpol_absSb / ip_sfabs[n] - interpol_Sb;
   }
   free( PTable );
   free( sfabs );
