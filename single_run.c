@@ -50,8 +50,8 @@ void random_select( double const * const actionVals, double const * const sfVals
 }
 
 
-void single_run( const size_t V, struct rparams * p, double const * const sfVals, size_t const numInterpol, double* const ip_lam, double* const ip_sfabs, double* const ip_sus, double* const ip_bc, double* const ip_dlog ) {
-  double* lambdas = p->lambdas;
+void single_run( const size_t V, struct rparams * p, double const * const sfVals, size_t const numInterpol, double* const ip_lam, double const lam_min, double const lam_max, double* const ip_sfabs, double* const ip_sus, double* const ip_bc, double* const ip_dlog ) {
+//   double* lambdas = p->lambdas;
   double* actionVals = p->actions;
   size_t nlambda = p->nlambda;
   size_t len_total = p->naction;
@@ -72,8 +72,8 @@ void single_run( const size_t V, struct rparams * p, double const * const sfVals
   calculateOnConfigData( sfVals, actionVals, len_total, sfabs, square, fourth, abs_Sb ); 
   
   // Use solution to calculate interpolations
-  double lam_min = lambdas[0];
-  double lam_max = lambdas[nlambda-1];
+//   double lam_min = lambdas[0];
+//   double lam_max = lambdas[nlambda-1];
   double d_lam = (lam_max - lam_min) / (numInterpol-1);
   printf( "Calculating interpolation from %.3f to %.3f in steps of %.5f\n", lam_min, lam_max, d_lam);
   

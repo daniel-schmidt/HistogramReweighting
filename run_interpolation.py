@@ -91,7 +91,9 @@ def run_interpolation( Nf, L, lambda_min, lambda_max, N_boot, bin_size, N_therma
             str(bin_size),
             str(N_thermal),
             str(f0),
-            str(N_interpol)]
+            str(N_interpol),
+            str(lambda_min),
+            str(lambda_max)]
   
   #time_start = time.time()
   #subp.run(command)
@@ -102,52 +104,45 @@ def run_interpolation( Nf, L, lambda_min, lambda_max, N_boot, bin_size, N_therma
   return process
   
 if __name__ == "__main__":
-  #LList = [20, 24]
-  #LList = [8, 10, 12, 16, 20, 24]
-  #f0List = [-20, -40, -70, -170, -350, -600]
-  #LList = [8, 10, 12, 14, 16, 20, 24, 32]
-  #f0List = [-8, -16, -28, -46, -71, -141, -248, -600]
-  #f0List = [-350, -1000]
-  #LList = [14]
-  #f0List = [-100] 
-  #LList = [6]
-  #f0List = [-8] 
-  #LList = [32]
-  #f0List = [-600] 
+  #LList = [8, 10, 12, 14, 16, 20, 24]
+  #f0List = [-20, -42, -75, -121, -185, -369, -836]
+  #LList = [24]
+  #f0List = [-593]
   #Nf = 1
   #lam_min = 0.424
   #lam_max = 0.496
+  #N_interpol = 361
+  
+  #LList = [32]
+  #f0List = [-601]
   #lam_min = 0.456
   #lam_max =0.488
+  #N_interpol = 161
   
-  #LList = [8, 10, 12, 16, 20, 24]
-  #f0List = [-20, -40, -70, -170, -350, -475]
-  #LList = [24]
-  #f0List = [-475]
+  #LList = [8, 10, 12, 14, 16, 20, 24]
+  #f0List = [-17, -33, -60, -97, -147, -294, -516]
   #Nf = 2
   #lam_min = 1.136
   #lam_max = 1.312
+  #N_interpol = 441
   
-  #LList = [8, 10, 12, 16, 20]
-  #f0List = [-20, -40, -70, -170, -350]
-  #LList = [24]
-  #f0List = [-475]
+  #LList = [8, 10, 12, 14, 16, 20, 24]
+  #f0List = [-9, -22, -39, -64, -97, -193, -403]
   #Nf = 4
-  #lam_min = 2.520
-  #lam_max = 2.904
+  #lam_min = 2.584
+  #lam_max = 2.840
+  #N_interpol = 257
   
-  #LList = [8, 10, 12, 16, 20, 24]
-  #f0List = [-19, -38, -68, -166, -333, -584]
-  LList = [16, 24]
-  f0List = [-166, -584]
+  LList = [8, 10, 12, 14, 16, 20, 24]
+  f0List = [-19, -38, -68, -110, -166, -333, -584]
   Nf = 8
   lam_min = 5.312
   lam_max = 6.208
+  N_interpol = 449
   
-  N_boot = 200
+  N_boot = 1000
   bin_size = 50
-  N_thermal = 200
-  N_interpol = 301
+  N_thermal = 100
   
   time_start = time.time()
   proc_list = []

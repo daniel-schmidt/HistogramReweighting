@@ -21,6 +21,8 @@ void single_run( const size_t V
                , double const * const sfVals
                , const size_t numInterpol
                , double* const ip_lam
+               , double const lam_min
+               , double const lam_max
                , double* const ip_sfabs
                , double* const ip_sus
                , double* const ip_bc

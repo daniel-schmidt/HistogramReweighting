@@ -8,8 +8,8 @@
 #include "single_run.h"
 
 int main( int argc, char** argv ) {
-  if( argc != 11 ) {
-    printf( "ERROR: Need 10 input parameters: lambdas.txt sf_paths.txt action_paths.txt subfolder_name L N_boot, bin_size, N_thermal, f0-shift, N_interpol\n" );
+  if( argc != 13 ) {
+    printf( "ERROR: Need 12 input parameters: lambdas.txt sf_paths.txt action_paths.txt subfolder_name L N_boot, bin_size, N_thermal, f0-shift, N_interpol, lam_min, lam_max\n" );
     exit(1);
   }
   
@@ -47,6 +47,8 @@ int main( int argc, char** argv ) {
   // Set parameters and calculate solution
   double f0 = atof(argv[9]);
   size_t numInterpol = atoi(argv[10]);
+  double const lam_min = atof(argv[11]);
+  double const lam_max = atof(argv[12]);
   
   struct rparams p = {
     lambdas,
@@ -64,7 +66,7 @@ int main( int argc, char** argv ) {
   double ip_bc    [numInterpol];
   double ip_dlog  [numInterpol];
   
-  single_run( V, &p, sfVals, numInterpol, ip_lam, ip_sfabs, ip_sus, ip_bc, ip_dlog );
+  single_run( V, &p, sfVals, numInterpol, ip_lam, lam_min, lam_max, ip_sfabs, ip_sus, ip_bc, ip_dlog );
   
   // binning and bootstrapping for error estimates
   srand(time(0));
@@ -115,7 +117,7 @@ int main( int argc, char** argv ) {
   for( size_t boot = 0; boot < Nboot; ++boot ) {
     printf( "Calculating bootstrap sample %zu...\n", boot );
     random_select( actionVals, sfVals, lengths, nlambda, bin_size, actionSelect, sfSelect );
-    single_run( V, &p, sfSelect, numInterpol, ip_lam, bin_ip_sfabs, bin_ip_sus, bin_ip_bc, bin_ip_dlog );
+    single_run( V, &p, sfSelect, numInterpol, ip_lam, lam_min, lam_max, bin_ip_sfabs, bin_ip_sus, bin_ip_bc, bin_ip_dlog );
     
     for( size_t ip = 0; ip < numInterpol; ++ip ) {
       err_sfabs[ip] += (bin_ip_sfabs[ip] - ip_sfabs[ip]) * (bin_ip_sfabs[ip] - ip_sfabs[ip]);
